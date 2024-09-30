@@ -1,0 +1,32 @@
+.form-input {
+  margin-bottom: 15px;
+  color: black;
+}
+
+.form-input label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  padding-left: 2px;
+}
+
+.form-input input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  background-color: white;
+  color: black;
+}
+
+.form-input .error-message {
+  color: red;
+  padding-left: 10px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+
+.form-input .required-field-indicator {
+  color: red;
+}
