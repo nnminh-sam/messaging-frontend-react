@@ -6,9 +6,10 @@ import {
   PaperClipOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
-import { Avatar, Badge, Button, Card, Input, Layout, Menu, theme } from "antd";
+import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
+import "../../assets/style/page/chat/BaseChat.css";
 
-const { Content, Footer, Sider } = Layout;
+const { Content, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>["items"][number];
 
@@ -59,45 +60,25 @@ const Chat: React.FC = () => {
   }, []);
 
   return (
-    <Layout hasSider style={{ minHeight: "100vh" }}>
-      <Sider>
-        <div
-          className="user-info"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            gap: "10px",
-            width: "100%",
-            backgroundColor: "white",
-            padding: "10px",
-          }}
-        >
-          <Avatar icon={<UserOutlined />} />
-          <p style={{ marginLeft: "10px" }}>Full name</p>
+    <Layout className="chat-container" hasSider>
+      <Sider className="chat-sidebar" width={300}>
+        <div className="user-info">
+          <Avatar className="avatar" icon={<UserOutlined />} />
+          <p className="full-name">
+            Full name really random long long long name
+          </p>
         </div>
         <Menu mode="inline" theme="dark" items={items} />
       </Sider>
-      <Layout style={{ display: "flex", flexDirection: "column" }}>
+      <Layout className="conversation-container">
         <Content
+          className="message-container"
           style={{
-            flex: 1,
-            overflow: "auto",
-            padding: 24,
-            textAlign: "center",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
         >
-          <div
-            className="message-container"
-            style={{
-              padding: 24,
-              textAlign: "center",
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG,
-            }}
-          >
+          <div>
             <p>long content</p>
             {Array.from({ length: 100 }, (_, index) => (
               <React.Fragment key={index}>
@@ -108,27 +89,16 @@ const Chat: React.FC = () => {
           </div>
         </Content>
         <div
+          className="message-input"
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "10px",
             background: colorBgContainer,
-            borderTop: "1px solid #e8e8e8",
-            position: "sticky",
-            bottom: 0,
-            width: "100%",
-            height: "100px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div className="texting-features">
             <Button icon={<SmileOutlined />} />
             <Button icon={<PaperClipOutlined />} />
           </div>
-          <Input
-            placeholder="Type a message"
-            style={{ flex: 1, marginRight: "10px" }}
-          />
+          <Input className="text-input" placeholder="Message" />
           <Button type="primary" icon={<SendOutlined />} />
         </div>
       </Layout>
