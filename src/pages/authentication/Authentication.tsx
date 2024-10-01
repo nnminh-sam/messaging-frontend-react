@@ -2,6 +2,9 @@ import React, { ChangeEvent, useState } from "react";
 import FormInput from "../../components/forms/FormInput";
 import { LoginPayload } from "../../types/dto/login.dto";
 import "../../assets/style/components/forms/BasicForm.css";
+import { login } from "../../apis/auth/login.service";
+import { AuthResponseDto } from "../../apis/auth/types/AuthResponse.dto";
+import { ErrorResponse } from "../../types/interface/error-response.dto";
 
 const Authentication: React.FC = () => {
   const [authRequestError, setAuthRequestError] = useState("");
@@ -24,6 +27,20 @@ const Authentication: React.FC = () => {
     event: React.FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
+    const { email, password } = form;
+    const response: AuthResponseDto | ErrorResponse = await login(
+      email,
+      password
+    );
+    if ("data" in response) {
+      const data: AuthResponseDto = response.data as AuthResponseDto;
+      localStorage.setItem("accessToken", data.accessToken);
+      window.location.href = "/";
+    } else {
+      const error: ErrorResponse = response as ErrorResponse;
+      setAuthRequestError(error.message);
+      localStorage.removeItem("accessToken");
+    }
   };
 
   return (
