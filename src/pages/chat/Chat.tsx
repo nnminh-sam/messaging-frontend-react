@@ -7,7 +7,7 @@ import {
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
-import "../../assets/style/page/chat/BaseChat.css";
+import "../../assets/style/pages/chat/BaseChat.css";
 
 const { Content, Sider } = Layout;
 

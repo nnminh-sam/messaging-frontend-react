@@ -1,38 +1,25 @@
-import React, { ChangeEvent } from "react";
-
 import "../../assets/style/components/forms/FormInput.css";
+import { FormInputProp } from "./types/FormInputProp.interface";
 
-interface FormInputProps {
-  id: string;
-  label: string;
-  type: string;
-  placeholder: string;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  isRequired?: boolean;
-  errorMessage?: string;
-}
-
-const FormInput: React.FC<FormInputProps> = (payload: FormInputProps) => {
+export const FormInput: React.FC<FormInputProp> = (props: FormInputProp) => {
   return (
-    <div className="form-input">
-      <label htmlFor={payload.id}>
-        {payload.label}{" "}
-        {payload.isRequired && (
-          <span className="required-field-indicator">*</span>
+    <div className="form-field">
+      <label htmlFor={props.id}>
+        {props.label}
+        {props.isRequired && (
+          <span className="required-field-indicator"> *</span>
         )}
       </label>
       <input
-        id={payload.id}
-        name={payload.id}
-        type={payload.type}
-        placeholder={payload.placeholder}
-        onChange={payload.onChange}
+        id={props.id}
+        name={props.id}
+        type={props.type}
+        placeholder={props.placeholder}
+        onChange={props.onChange}
       />
-      {payload.errorMessage && (
-        <p className="error-message">{payload.errorMessage}</p>
+      {props.errorMessage && (
+        <p className="error-message">{props.errorMessage}</p>
       )}
     </div>
   );
 };
-
-export default FormInput;

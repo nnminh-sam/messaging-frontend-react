@@ -1,17 +1,21 @@
-.form-input {
+.form-field {
   margin-bottom: 15px;
   color: black;
 }
 
-.form-input label {
+.form-field label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
   padding-left: 2px;
 }
 
-.form-input input {
+.form-field input {
   width: 100%;
+}
+
+.form-field input,
+select {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -20,13 +24,13 @@
   color: black;
 }
 
-.form-input .error-message {
+.form-field .error-message {
   color: red;
   padding-left: 10px;
   margin-top: 5px;
   margin-bottom: 10px;
 }
 
-.form-input .required-field-indicator {
+.form-field .required-field-indicator {
   color: red;
 }
