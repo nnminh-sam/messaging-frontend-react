@@ -5,16 +5,15 @@ import {
   GetAuthenticationDefaultValue,
 } from "./types/Authenticate.interface";
 import { FormBase } from "../../components/forms/FormBase";
-import { Login } from "../../apis/auth/login.service";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../components/auth/AuthenticationProvider";
+import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
 
 export const AuthenticationForm: React.FC = () => {
-  const navigate = useNavigate();
+  const authContext: AuthenticationContextProp = useAuth();
 
   const onFormSubmit = async (form: Authentication) => {
-    const data = await Login(form.email, form.password);
-    localStorage.setItem("accessToken", data.data.accessToken);
-    navigate("/");
+    await authContext.loginAction(form);
+    return;
   };
 
   const formInputData: any[] = [

@@ -1,3 +1,4 @@
+import "../../assets/style/pages/chat/BaseChat.css";
 import React, { useState, useEffect } from "react";
 import {
   UserOutlined,
@@ -7,13 +8,11 @@ import {
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
-import "../../assets/style/pages/chat/BaseChat.css";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "../../components/auth/AuthenticationProvider";
+import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
 
 const { Content, Sider } = Layout;
-
 type MenuItem = Required<MenuProps>["items"][number];
-
 type Conversation = {
   id: string;
   name: string;
@@ -38,30 +37,21 @@ const conversations: Conversation[] = [
   },
 ];
 
-const Chat: React.FC = () => {
-  const [accessToken, setAccessToken] = useState(() => {
-    const accessTokenFromLocalStorage = localStorage.getItem("accessToken");
-    if (!accessTokenFromLocalStorage) {
-      Navigate({ to: "/login" });
-    }
-    return accessTokenFromLocalStorage;
-  });
+export const ChatPage: React.FC = () => {
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const authenticationContext: AuthenticationContextProp = useAuth();
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const [items, setItems] = useState<MenuItem[]>([]);
-
   useEffect(() => {
     const loadItems = () => {
-      const menuItems: MenuItem[] = conversations.map((conversation) => {
-        return {
-          key: conversation.id,
-          icon: <UserOutlined />,
-          label: conversation.name,
-        };
-      });
+      const menuItems: MenuItem[] = conversations.map((conversation) => ({
+        key: conversation.id,
+        icon: <UserOutlined />,
+        label: conversation.name,
+      }));
       setItems(menuItems);
     };
 
@@ -74,7 +64,9 @@ const Chat: React.FC = () => {
         <div className="user-info">
           <Avatar className="avatar" icon={<UserOutlined />} />
           <p className="full-name">
-            Full name really random long long long name
+            {authenticationContext.userInformation
+              ? authenticationContext.userInformation.fullName
+              : "Loading..."}
           </p>
         </div>
         <Menu mode="inline" theme="dark" items={items} />
@@ -114,5 +106,3 @@ const Chat: React.FC = () => {
     </Layout>
   );
 };
-
-export default Chat;

@@ -3,16 +3,22 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 import { AuthenticationForm } from "../pages/auth/Authenticate";
 import { RegistrationForm } from "../pages/auth/Register";
-import Chat from "../pages/chat/chat";
+import { ChatPage } from "../pages/chat/Chat";
+import AuthenticationProvider from "../components/auth/AuthenticationProvider";
+import PrivateRoute from "../components/auth/PrivateRoute";
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Chat />} />
-        <Route path="/login" element={<AuthenticationForm />} />
-        <Route path="/register" element={<RegistrationForm />} />
-      </Routes>
+      <AuthenticationProvider>
+        <Routes>
+          <Route element={<PrivateRoute />}>
+            <Route path="/" element={<ChatPage />} />
+          </Route>
+          <Route path="/login" element={<AuthenticationForm />} />
+          <Route path="/register" element={<RegistrationForm />} />
+        </Routes>
+      </AuthenticationProvider>
     </Router>
   );
 }

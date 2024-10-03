@@ -6,21 +6,18 @@ import {
 } from "./types/Registration.interface";
 import { FormBase } from "../../components/forms/FormBase";
 import { Gender } from "./types/Gender.enum";
-import { Register } from "../../apis/auth/registration.service";
+import { Register } from "../../apis/auth/authentication.service";
 import { useNavigate } from "react-router-dom";
+import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
+import { useAuth } from "../../components/auth/AuthenticationProvider";
 
 export const RegistrationForm: React.FC = () => {
   const navigate = useNavigate();
+  const authenticationContext: AuthenticationContextProp = useAuth();
 
   const formSubmitHandler = async (form: Registration) => {
-    const email: string = form.email;
-    const username = email.split("@")[0];
-    const data = await Register({
-      ...form,
-      username,
-    });
-    localStorage.setItem("accessToken", data.data.accessToken);
-    navigate("/");
+    await authenticationContext.registrationAction(form);
+    return;
   };
 
   const formInputData: any[] = [
@@ -84,7 +81,7 @@ export const RegistrationForm: React.FC = () => {
         submitButtonText="Sign up"
         footerChildren={[
           <div className="form-redirect direct-to-login">
-            Have an account? <a href="/login">Login</a>
+            Have an account? <a href="/login">Login!</a>
           </div>,
         ]}
       />
