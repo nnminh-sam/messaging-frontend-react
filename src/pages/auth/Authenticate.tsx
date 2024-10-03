@@ -13,7 +13,7 @@ export const AuthenticationForm: React.FC = () => {
 
   const onFormSubmit = async (form: Authentication) => {
     const data = await Login(form.email, form.password);
-    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("accessToken", data.data.accessToken);
     navigate("/");
   };
 

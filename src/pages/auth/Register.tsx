@@ -19,7 +19,7 @@ export const RegistrationForm: React.FC = () => {
       ...form,
       username,
     });
-    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("accessToken", data.data.accessToken);
     navigate("/");
   };
 

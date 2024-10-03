@@ -8,6 +8,7 @@ import {
 import type { MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
 import "../../assets/style/pages/chat/BaseChat.css";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const { Content, Sider } = Layout;
 
@@ -38,6 +39,14 @@ const conversations: Conversation[] = [
 ];
 
 const Chat: React.FC = () => {
+  const [accessToken, setAccessToken] = useState(() => {
+    const accessTokenFromLocalStorage = localStorage.getItem("accessToken");
+    if (!accessTokenFromLocalStorage) {
+      Navigate({ to: "/login" });
+    }
+    return accessTokenFromLocalStorage;
+  });
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
