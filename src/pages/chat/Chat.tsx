@@ -8,6 +8,7 @@ import {
   ProfileOutlined,
   FormOutlined,
   WechatOutlined,
+  CommentOutlined,
 } from "@ant-design/icons";
 import type { GetProps, MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
@@ -22,7 +23,7 @@ import { Relationship } from "../../apis/chat/types/relationship.dto";
 import { UserInformation } from "../../apis/chat/types/user-information.dto";
 
 const { Content, Sider } = Layout;
-type SideBarConversation = Required<MenuProps>["items"][number];
+type SideBarItem = Required<MenuProps>["items"][number];
 type SearchProps = GetProps<typeof Input.Search>;
 
 const { Search } = Input;
@@ -31,7 +32,7 @@ const onSearch: SearchProps["onSearch"] = (value, _e, info) =>
 
 export const ChatPage: React.FC = () => {
   const authenticationContext: AuthenticationContextProp = useAuth();
-  const [conversations, setConversations] = useState<SideBarConversation[]>([]);
+  const [sidebarData, setSidebarData] = useState<SideBarItem[]>([]);
   const [activeConversation, setActiveConversation] = useState<string>("");
   const [sidebarActiveTab, setSidebarActiveTab] =
     useState<string>("conversation");
@@ -53,6 +54,12 @@ export const ChatPage: React.FC = () => {
         }
       );
       console.log("friends:", friends);
+      const SideBarItems: SideBarItem[] = friends.map((friend) => ({
+        key: friend.id,
+        icon: <UserOutlined />,
+        label: `${friend.lastName} ${friend.firstName}`,
+      }));
+      setSidebarData(SideBarItems);
     } catch (error: any) {
       if (error.message === "Unauthorized") {
         authenticationContext.logoutAction();
@@ -64,7 +71,28 @@ export const ChatPage: React.FC = () => {
     try {
       const response: ListApiResponse<Membership> =
         await GetParticipatedConversation(authenticationContext.accessToken);
-      console.log("response:", response);
+      console.log("conversations:", response);
+      const conversations: Conversation[] = response.data.map((membership) => {
+        return membership.conversation;
+      });
+      const SideBarItems: SideBarItem[] = conversations.map((conversation) => {
+        if (!conversation || !conversation.name) {
+          authenticationContext.logoutAction();
+        }
+
+        let privateConversationId: string | null = null;
+        const match = conversation.name.match(/\[(.*?)\]/);
+        if (match && match[1]) {
+          privateConversationId = match[1];
+        }
+
+        return {
+          key: conversation.id,
+          icon: <CommentOutlined />,
+          label: conversation.name,
+        };
+      });
+      setSidebarData(SideBarItems);
     } catch (error: any) {
       if (error.message === "Unauthorized") {
         authenticationContext.logoutAction();
@@ -82,31 +110,7 @@ export const ChatPage: React.FC = () => {
       );
     }
 
-    const GetUserParticipatedConversation = async () => {
-      try {
-        const response: ListApiResponse<Membership> =
-          await GetParticipatedConversation(authenticationContext.accessToken);
-        const conversations: Conversation[] = response.data.map(
-          (membership) => {
-            return membership.conversation;
-          }
-        );
-        const sideBarConversations: SideBarConversation[] = conversations.map(
-          (conversation) => ({
-            key: conversation.id,
-            icon: <UserOutlined />,
-            label: conversation.name,
-          })
-        );
-        setConversations(sideBarConversations);
-      } catch (error: any) {
-        if (error.message === "Unauthorized") {
-          authenticationContext.logoutAction();
-        }
-      }
-    };
-
-    GetUserParticipatedConversation();
+    fetchParticipatedConversation();
   }, []);
 
   const handleConversationSelected: MenuProps["onClick"] = (event: any) => {
@@ -119,13 +123,16 @@ export const ChatPage: React.FC = () => {
     console.log("Go to profile");
   };
 
-  const handleConversationTabSelected = (event: any) => {
+  const handleConversationTabSelected = async (event: any) => {
     event.preventDefault();
+    if (sidebarActiveTab === "conversation") return;
     setSidebarActiveTab("conversation");
+    await fetchParticipatedConversation();
   };
 
   const handleFriendTabSelected = async (event: any) => {
     event.preventDefault();
+    if (sidebarActiveTab === "friend") return;
     setSidebarActiveTab("friend");
     await fetchUserFriendList();
   };
@@ -191,7 +198,7 @@ export const ChatPage: React.FC = () => {
         <Menu
           mode="inline"
           theme="dark"
-          items={conversations}
+          items={sidebarData}
           onClick={handleConversationSelected}
         />
       </Sider>
