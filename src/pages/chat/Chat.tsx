@@ -10,52 +10,48 @@ import type { MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
 import { useAuth } from "../../components/auth/AuthenticationProvider";
 import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
+import { GetParticipatedConversation } from "../../apis/chat/user.service";
+import { Membership } from "../../apis/chat/types/membership.dto";
+import { ListApiResponse } from "../../types/list-api-response.dto";
+import { Conversation } from "../../apis/chat/types/conversation.dto";
 
 const { Content, Sider } = Layout;
-type MenuItem = Required<MenuProps>["items"][number];
-type Conversation = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-const conversations: Conversation[] = [
-  {
-    id: "1",
-    name: "a",
-    slug: "a",
-  },
-  {
-    id: "2",
-    name: "b",
-    slug: "b",
-  },
-  {
-    id: "3",
-    name: "c",
-    slug: "c",
-  },
-];
+type SideBarConversation = Required<MenuProps>["items"][number];
 
 export const ChatPage: React.FC = () => {
-  const [items, setItems] = useState<MenuItem[]>([]);
   const authenticationContext: AuthenticationContextProp = useAuth();
+  const [conversations, setConversations] = useState<SideBarConversation[]>([]);
 
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   useEffect(() => {
-    const loadItems = () => {
-      const menuItems: MenuItem[] = conversations.map((conversation) => ({
-        key: conversation.id,
-        icon: <UserOutlined />,
-        label: conversation.name,
-      }));
-      setItems(menuItems);
+    const GetUserParticipatedConversation = async () => {
+      try {
+        const response: ListApiResponse<Membership> =
+          await GetParticipatedConversation(authenticationContext.accessToken);
+        const conversations: Conversation[] = response.data.map(
+          (membership) => {
+            return membership.conversation;
+          }
+        );
+        const sideBarConversations: SideBarConversation[] = conversations.map(
+          (conversation) => ({
+            key: conversation.id,
+            icon: <UserOutlined />,
+            label: conversation.name,
+          })
+        );
+        setConversations(sideBarConversations);
+      } catch (error: any) {
+        if (error.message === "Unauthorized") {
+          authenticationContext.logoutAction();
+        }
+      }
     };
 
-    loadItems();
+    GetUserParticipatedConversation();
   }, []);
 
   return (
@@ -69,7 +65,7 @@ export const ChatPage: React.FC = () => {
               : "Loading..."}
           </p>
         </div>
-        <Menu mode="inline" theme="dark" items={items} />
+        <Menu mode="inline" theme="dark" items={conversations} />
       </Sider>
       <Layout className="conversation-container">
         <Content

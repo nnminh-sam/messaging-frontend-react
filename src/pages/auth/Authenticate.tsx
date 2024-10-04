@@ -35,6 +35,14 @@ export const AuthenticationForm: React.FC = () => {
 
   return (
     <div className="authentication-form auth-form">
+      {/* TODO: Remove this p tag */}
+      <div
+        style={{
+          padding: "10px",
+        }}
+      >
+        <p>Email 1: Matilda51@yahoo.com</p>
+      </div>
       <FormBase<Authentication>
         name="registration"
         title="Login"
