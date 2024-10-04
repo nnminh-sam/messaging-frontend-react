@@ -10,7 +10,7 @@ import type { MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
 import { useAuth } from "../../components/auth/AuthenticationProvider";
 import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
-import { GetParticipatedConversation } from "../../apis/chat/user.service";
+import { GetParticipatedConversation } from "../../apis/chat/membership.service";
 import { Membership } from "../../apis/chat/types/membership.dto";
 import { ListApiResponse } from "../../types/list-api-response.dto";
 import { Conversation } from "../../apis/chat/types/conversation.dto";
@@ -21,6 +21,7 @@ type SideBarConversation = Required<MenuProps>["items"][number];
 export const ChatPage: React.FC = () => {
   const authenticationContext: AuthenticationContextProp = useAuth();
   const [conversations, setConversations] = useState<SideBarConversation[]>([]);
+  const [activeConversation, setActiveConversation] = useState<string>("");
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -63,6 +64,11 @@ export const ChatPage: React.FC = () => {
     GetUserParticipatedConversation();
   }, []);
 
+  const handleConversationSelected: MenuProps["onClick"] = (event: any) => {
+    console.log("Choosing:", event.key);
+    setActiveConversation(event.key);
+  };
+
   return (
     <Layout className="chat-container" hasSider>
       <Sider className="chat-sidebar" width={300}>
@@ -74,7 +80,12 @@ export const ChatPage: React.FC = () => {
               : "Loading..."}
           </p>
         </div>
-        <Menu mode="inline" theme="dark" items={conversations} />
+        <Menu
+          mode="inline"
+          theme="dark"
+          items={conversations}
+          onClick={handleConversationSelected}
+        />
       </Sider>
       <Layout className="conversation-container">
         <Content
