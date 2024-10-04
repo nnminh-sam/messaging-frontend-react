@@ -1,4 +1,10 @@
-import React, { useState, useContext, createContext, Context } from "react";
+import React, {
+  useState,
+  useContext,
+  createContext,
+  Context,
+  useEffect,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { Login, Register } from "../../apis/auth/authentication.service";
 import {} from "../../apis/auth/authentication.service";
@@ -35,6 +41,12 @@ const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
       navigate("/");
     }
   };
+
+  useEffect(() => {
+    if (accessToken && !userInformation.fullName) {
+      getUserInformation(accessToken);
+    }
+  }, [accessToken]);
 
   const loginAction = async (form: Authentication) => {
     const { data } = await Login(form.email, form.password);
@@ -78,6 +90,7 @@ const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
         registrationAction,
         loginAction,
         logoutAction,
+        getUserInformation,
       }}
     >
       {children}

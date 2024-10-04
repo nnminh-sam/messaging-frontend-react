@@ -27,6 +27,15 @@ export const ChatPage: React.FC = () => {
   } = theme.useToken();
 
   useEffect(() => {
+    if (
+      !authenticationContext.userInformation.fullName &&
+      authenticationContext.accessToken
+    ) {
+      authenticationContext.getUserInformation(
+        authenticationContext.accessToken
+      );
+    }
+
     const GetUserParticipatedConversation = async () => {
       try {
         const response: ListApiResponse<Membership> =

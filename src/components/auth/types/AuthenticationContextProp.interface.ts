@@ -13,6 +13,8 @@ export interface AuthenticationContextProp {
   loginAction: any;
 
   logoutAction: any;
+
+  getUserInformation: any;
 }
 
 export function GetDefaultAuthenticationContext(): AuthenticationContextProp {
@@ -22,5 +24,6 @@ export function GetDefaultAuthenticationContext(): AuthenticationContextProp {
     registrationAction: null,
     loginAction: null,
     logoutAction: null,
+    getUserInformation: null,
   };
 }
