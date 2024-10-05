@@ -1,10 +1,11 @@
-export type Pagination = {
+export interface Pagination {
   page: number;
   size: number;
-};
+  totalPage: number;
+  totalDocument: number;
+}
 
-export type ApiMetadata = {
+export interface ApiMetadata {
   pagination: Pagination;
-
   count: number;
-};
+}

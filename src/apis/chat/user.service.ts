@@ -3,6 +3,7 @@ import axios, { AxiosResponse } from "axios";
 import { UserInformation } from "./types/user-information.dto";
 import { GetHeaderConfig } from "../service.config";
 import { ListApiResponse } from "../../types/list-api-response.dto";
+import { UserInformationWithRelationship } from "./types/user-information-with-relationship.dto";
 
 const env: ImportMetaEnv = import.meta.env;
 const BASE_API_URL: string = `${env.VITE_BACKEND_URL}/${env.VITE_BACKEND_API_PREFIX}/${env.VITE_BACKEND_API_VERSION}/users`;
@@ -32,8 +33,9 @@ export async function FindUsers(
 ) {
   const API_URL = `${BASE_API_URL}?searchValue=${searchValue}&page=${page}&size=${size}&sortBy=${sortBy}&orderBy=${orderBy}`;
   try {
-    const response: AxiosResponse<ListApiResponse<UserInformation>> =
-      await axios.get(API_URL, GetHeaderConfig(token));
+    const response: AxiosResponse<
+      ListApiResponse<UserInformationWithRelationship>
+    > = await axios.get(API_URL, GetHeaderConfig(token));
     return response.data;
   } catch (error: any) {
     throw new Error(error.response.data.message);
