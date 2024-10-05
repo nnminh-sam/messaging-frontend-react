@@ -13,6 +13,7 @@ import {
 import type { GetProps, MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
 import { useAuth } from "../../components/auth/AuthenticationProvider";
+import { CreateRelationshipModal } from "./modal/CreateRelationship.modal"; // Import the modal
 import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
 import { GetParticipatedConversation } from "../../apis/chat/membership.service";
 import { Membership } from "../../apis/chat/types/membership.dto";
@@ -42,6 +43,11 @@ export const ChatPage: React.FC = () => {
   const [sidebarActiveTab, setSidebarActiveTab] =
     useState<string>("conversation");
   const [message, setMessage] = useState<string>("");
+  const [
+    isCreateRelationshipModalVisible,
+    setIsCreateRelationshipModalVisible,
+  ] = useState<boolean>(false);
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -174,12 +180,13 @@ export const ChatPage: React.FC = () => {
     await fetchUserFriendList();
   };
 
-  // TODO: handle create new conversation and new relationship
   const handleCreateNewItemButtonClicked = async (event: any) => {
+    event.preventDefault();
     if (sidebarActiveTab === "conversation") {
       console.log("Create new conversation");
     } else {
       console.log("Create new relationship");
+      setIsCreateRelationshipModalVisible(true);
     }
   };
 
@@ -321,6 +328,16 @@ export const ChatPage: React.FC = () => {
           </div>
         </div>
       </Layout>
+      <CreateRelationshipModal
+        visible={isCreateRelationshipModalVisible}
+        onClose={() => setIsCreateRelationshipModalVisible(false)}
+        onCreateRelationship={(searchTerm) => {
+          console.log("Creating relationship with:", searchTerm);
+          // Add logic to handle relationship creation
+          setIsCreateRelationshipModalVisible(false);
+        }}
+        userA={authenticationContext.userInformation.id}
+      />
     </Layout>
   );
 };
