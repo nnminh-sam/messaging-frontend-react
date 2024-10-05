@@ -1,6 +1,7 @@
 export interface CreateRelationshipModalProp {
+  accessToken: string;
   userA: string;
   visible: boolean;
   onClose: () => void;
-  onCreateRelationship: (searchTerm: string) => void;
+  logoutAction: () => void;
 }

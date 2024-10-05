@@ -329,13 +329,10 @@ export const ChatPage: React.FC = () => {
         </div>
       </Layout>
       <CreateRelationshipModal
+        accessToken={authenticationContext.accessToken}
+        logoutAction={authenticationContext.logoutAction}
         visible={isCreateRelationshipModalVisible}
         onClose={() => setIsCreateRelationshipModalVisible(false)}
-        onCreateRelationship={(searchTerm) => {
-          console.log("Creating relationship with:", searchTerm);
-          // Add logic to handle relationship creation
-          setIsCreateRelationshipModalVisible(false);
-        }}
         userA={authenticationContext.userInformation.id}
       />
     </Layout>

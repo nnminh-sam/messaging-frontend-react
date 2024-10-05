@@ -1,27 +1,45 @@
 import React, { useState } from "react";
-import { Modal, Input, Button } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { Modal, Input, Button, List, Avatar } from "antd";
+import { SearchOutlined, UserOutlined } from "@ant-design/icons";
 import { CreateRelationshipModalProp } from "./types/CreateRelationshipModalProp";
+import { FindUsers } from "../../../apis/chat/user.service";
 
 export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
+  accessToken,
   visible,
   onClose,
-  onCreateRelationship,
+  logoutAction,
 }) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [users, setUsers] = useState<any[]>([]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
 
-  const handleCreateRelationship = () => {
-    onCreateRelationship(searchTerm);
-    setSearchTerm("");
+  const handleCreateRelationship = (userId: string) => {
+    console.log("selected user:", userId);
   };
 
-  const handleSearch = () => {
-    console.log("Searching for:", searchTerm);
-    // Add logic to perform the search, e.g., call an API to search for users
+  const handleSearch = async () => {
+    if (!accessToken) {
+      logoutAction();
+      return;
+    }
+    try {
+      const response = await FindUsers(
+        accessToken,
+        searchTerm,
+        1,
+        10,
+        "firstName",
+        "asc"
+      );
+      console.log("response:", response);
+      setUsers(response.data);
+    } catch (error) {
+      console.log("error:", error);
+    }
   };
 
   return (
@@ -33,17 +51,9 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
         <Button key="cancel" onClick={onClose}>
           Cancel
         </Button>,
-        <Button
-          key="submit"
-          type="primary"
-          onClick={handleCreateRelationship}
-          disabled={!searchTerm.trim()}
-        >
-          Create
-        </Button>,
       ]}
     >
-      <div style={{ display: "flex", gap: "8px" }}>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
         <Input
           placeholder="Search by username, email, or name"
           value={searchTerm}
@@ -56,6 +66,28 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
           icon={<SearchOutlined />}
         />
       </div>
+      <List
+        itemLayout="horizontal"
+        dataSource={users}
+        renderItem={(user) => (
+          <List.Item
+            actions={[
+              <Button
+                type="link"
+                onClick={() => handleCreateRelationship(user.id)}
+              >
+                Add
+              </Button>,
+            ]}
+          >
+            <List.Item.Meta
+              avatar={<Avatar icon={<UserOutlined />} />}
+              title={`${user.firstName} ${user.lastName}`}
+              description={user.email}
+            />
+          </List.Item>
+        )}
+      />
     </Modal>
   );
 };
