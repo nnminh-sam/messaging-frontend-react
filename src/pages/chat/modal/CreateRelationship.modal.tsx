@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Input, Button } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
 import { CreateRelationshipModalProp } from "./types/CreateRelationshipModalProp";
 
 export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
@@ -15,7 +16,12 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
 
   const handleCreateRelationship = () => {
     onCreateRelationship(searchTerm);
-    setSearchTerm(""); // Clear the search term after submission
+    setSearchTerm("");
+  };
+
+  const handleSearch = () => {
+    console.log("Searching for:", searchTerm);
+    // Add logic to perform the search, e.g., call an API to search for users
   };
 
   return (
@@ -37,11 +43,19 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
         </Button>,
       ]}
     >
-      <Input
-        placeholder="Search by username, email, or name"
-        value={searchTerm}
-        onChange={handleSearchChange}
-      />
+      <div style={{ display: "flex", gap: "8px" }}>
+        <Input
+          placeholder="Search by username, email, or name"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+        <Button
+          type="default"
+          onClick={handleSearch}
+          disabled={!searchTerm.trim()}
+          icon={<SearchOutlined />}
+        />
+      </div>
     </Modal>
   );
 };
