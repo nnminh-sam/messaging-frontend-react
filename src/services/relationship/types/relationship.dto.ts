@@ -1,4 +1,4 @@
-import { UserInformation } from "./user-information.dto";
+import { UserInformation } from "../../user/types/user-information.dto";
 
 export type Relationship = {
   id: string;

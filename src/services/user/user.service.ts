@@ -1,4 +1,4 @@
-import { ApiResponse } from "./../../types/api-response.dto";
+import { ApiResponse } from "../../types/api-response.dto";
 import axios, { AxiosResponse } from "axios";
 import { UserInformation } from "./types/user-information.dto";
 import { GetHeaderConfig } from "../service.config";

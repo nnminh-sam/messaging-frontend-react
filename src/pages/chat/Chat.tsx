@@ -13,17 +13,17 @@ import {
 import type { GetProps, MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
 import { useAuth } from "../../components/auth/AuthenticationProvider";
-import { CreateRelationshipModal } from "./modal/CreateRelationship.modal"; // Import the modal
+import { CreateRelationshipModal } from "./modal/CreateRelationship.modal";
 import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
-import { GetParticipatedConversation } from "../../apis/chat/membership.service";
-import { Membership } from "../../apis/chat/types/membership.dto";
+import { GetParticipatedConversation } from "../../services/membership/membership.service";
+import { Membership } from "../../services/membership/types/membership.dto";
 import { ListApiResponse } from "../../types/list-api-response.dto";
-import { Conversation } from "../../apis/chat/types/conversation.dto";
-import { GetUserFriends } from "../../apis/chat/relationship.service";
-import { Relationship } from "../../apis/chat/types/relationship.dto";
-import { UserInformation } from "../../apis/chat/types/user-information.dto";
-import { CreateNewMessage } from "../../apis/chat/message.service";
-import { CreateMessagePayload } from "../../apis/chat/types/dto/create-message-payload.dto";
+import { Conversation } from "../../services/conversation/types/conversation.dto";
+import { GetUserFriends } from "../../services/relationship/relationship.service";
+import { Relationship } from "../../services/relationship/types/relationship.dto";
+import { UserInformation } from "../../services/user/types/user-information.dto";
+import { CreateNewMessage } from "../../services/message/message.service";
+import { CreateMessagePayload } from "../../services/message/types/create-message-payload.dto";
 
 const { Content, Sider } = Layout;
 type SideBarItem = Required<MenuProps>["items"][number];

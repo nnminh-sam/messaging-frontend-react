@@ -1,4 +1,4 @@
-import { CreateRelationshipPayload } from "./types/dto/create-relationship-payload.dto";
+import { CreateRelationshipPayload } from "./types/create-relationship-payload.dto";
 import axios, { AxiosResponse } from "axios";
 import { ListApiResponse } from "../../types/list-api-response.dto";
 import { GetHeaderConfig } from "../service.config";
@@ -28,6 +28,36 @@ export async function CreateNewRelationship(
     const response: AxiosResponse<ApiResponse<Relationship>> = await axios.post(
       API_URL,
       payload,
+      GetHeaderConfig(token)
+    );
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response.data.message);
+  }
+}
+
+export async function AcceptFriendship(token: string, relationshipId: string) {
+  const API_URL = `${BASE_API_URL}/confirm-friendship/${relationshipId}`;
+  try {
+    const response: AxiosResponse<ApiResponse<Relationship>> = await axios.get(
+      API_URL,
+      GetHeaderConfig(token)
+    );
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response.data.message);
+  }
+}
+
+export async function DeclineRelationship(
+  token: string,
+  relationshipId: string
+) {
+  const API_URL = `${BASE_API_URL}/${relationshipId}`;
+  try {
+    const response: AxiosResponse<ApiResponse<Relationship>> = await axios.put(
+      API_URL,
+      { status: "AWAY" },
       GetHeaderConfig(token)
     );
     return response.data;

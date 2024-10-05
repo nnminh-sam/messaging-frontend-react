@@ -1,7 +1,7 @@
 import {
   GetDefaultUserInformation,
   UserInformation,
-} from "../../../apis/chat/types/user-information.dto";
+} from "../../../services/user/types/user-information.dto";
 
 export interface AuthenticationContextProp {
   accessToken: string;

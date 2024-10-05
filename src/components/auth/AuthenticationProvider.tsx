@@ -6,16 +6,16 @@ import React, {
   useEffect,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { Login, Register } from "../../apis/auth/authentication.service";
-import {} from "../../apis/auth/authentication.service";
+import { Login, Register } from "../../services/auth/authentication.service";
+import {} from "../../services/auth/authentication.service";
 import {} from "../../pages/auth/Authenticate";
 import { Authentication } from "../../pages/auth/types/Authenticate.interface";
 import {
   AuthenticationContextProp,
   GetDefaultAuthenticationContext,
 } from "./types/AuthenticationContextProp.interface";
-import { GetDefaultUserInformation } from "../../apis/chat/types/user-information.dto";
-import { GetUserInformation } from "../../apis/chat/user.service";
+import { GetDefaultUserInformation } from "../../services/user/types/user-information.dto";
+import { GetUserInformation } from "../../services/user/user.service";
 import { Registration } from "../../pages/auth/types/Registration.interface";
 
 const AuthContext: Context<AuthenticationContextProp> = createContext(

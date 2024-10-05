@@ -2,10 +2,18 @@ import React, { useState } from "react";
 import { Modal, Input, Button, List, Avatar, Pagination } from "antd";
 import { SearchOutlined, UserOutlined } from "@ant-design/icons";
 import { CreateRelationshipModalProp } from "./types/CreateRelationshipModalProp";
-import { FindUsers } from "../../../apis/chat/user.service";
+import { FindUsers } from "../../../services/user/user.service";
 import { ListApiResponse } from "../../../types/list-api-response.dto";
-import { UserInformationWithRelationship } from "../../../apis/chat/types/user-information-with-relationship.dto";
+import { UserInformationWithRelationship } from "../../../services/user/types/user-information-with-relationship.dto";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
+import { CreateRelationshipPayload } from "../../../services/relationship/types/create-relationship-payload.dto";
+import {
+  AcceptFriendship,
+  CreateNewRelationship,
+  DeclineRelationship,
+} from "../../../services/relationship/relationship.service";
+import { ApiResponse } from "../../../types/api-response.dto";
+import { Relationship } from "../../../services/relationship/types/relationship.dto";
 
 export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
   accessToken,
@@ -26,8 +34,52 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
     setSearchTerm(event.target.value);
   };
 
-  const handleCreateRelationship: any = (userId: string) => {
-    console.log("selected user:", userId);
+  const handleCreateRelationship: any = async (userId: string) => {
+    const payload: CreateRelationshipPayload = {
+      userA: authContext.userInformation.id,
+      userB: userId,
+      status: "REQUEST_USER_A",
+    };
+    try {
+      const response: ApiResponse<Relationship> = await CreateNewRelationship(
+        authContext.accessToken,
+        payload
+      );
+      handleSearch(currentPage);
+    } catch (error) {
+      console.log("error:", error);
+      authContext.logoutAction();
+    }
+  };
+
+  const handleAcceptRequestRelationship: any = async (
+    relationshipId: string
+  ) => {
+    try {
+      const response: ApiResponse<Relationship> = await AcceptFriendship(
+        authContext.accessToken,
+        relationshipId
+      );
+      console.log("response:", response);
+      handleSearch(currentPage);
+    } catch (error) {
+      console.log("error:", error);
+    }
+  };
+
+  const handleDeclineRequestRelationship: any = async (
+    relationshipId: string
+  ) => {
+    try {
+      const response: ApiResponse<Relationship> = await DeclineRelationship(
+        authContext.accessToken,
+        relationshipId
+      );
+      console.log("response:", response);
+      handleSearch(currentPage);
+    } catch (error) {
+      console.log("error:", error);
+    }
   };
 
   const handleSearch = async (page: number = 1) => {
@@ -50,7 +102,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
       setUsers(response.data);
       setTotalUsers(response.metadata.pagination.totalDocument);
     } catch (error) {
-      console.log("error:", error);
+      authContext.logoutAction();
     }
   };
 
@@ -83,8 +135,21 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
             </Button>
           ) : (
             [
-              <Button type="primary">Accept</Button>,
-              <Button type="link" style={{ color: "red" }}>
+              <Button
+                type="primary"
+                onClick={() => {
+                  handleAcceptRequestRelationship(user.relationship.id);
+                }}
+              >
+                Accept
+              </Button>,
+              <Button
+                type="link"
+                style={{ color: "red" }}
+                onClick={() => {
+                  handleDeclineRequestRelationship(user.relationship.id);
+                }}
+              >
                 Decline
               </Button>,
             ]
@@ -94,12 +159,33 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
             <Button type="link">Pending</Button>
           ) : (
             [
-              <Button type="primary">Accept</Button>,
-              <Button type="link" style={{ color: "red" }}>
+              <Button
+                type="primary"
+                onClick={() => {
+                  handleAcceptRequestRelationship(user.relationship.id);
+                }}
+              >
+                Accept
+              </Button>,
+              <Button
+                type="link"
+                style={{ color: "red" }}
+                onClick={() => {
+                  handleDeclineRequestRelationship(user.relationship.id);
+                }}
+              >
                 Decline
               </Button>,
             ]
           );
+        case "AWAY":
+          <Button
+            color="primary"
+            variant="outlined"
+            onClick={() => handleCreateRelationship(user.id)}
+          >
+            Add Friend
+          </Button>;
         default:
           return (
             <Button color="danger" variant="outlined">
@@ -149,6 +235,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
         renderItem={(user) => (
           <List.Item actions={[renderUserActions(user)]}>
             <List.Item.Meta
+              key={user.id}
               avatar={<Avatar icon={<UserOutlined />} />}
               title={`${user.firstName} ${user.lastName}`}
               description={user.email}
