@@ -5,10 +5,10 @@ import {
   SendOutlined,
   SmileOutlined,
   PaperClipOutlined,
-  ProfileOutlined,
-  FormOutlined,
   WechatOutlined,
   CommentOutlined,
+  FormOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons";
 import type { GetProps, MenuProps } from "antd";
 import { Avatar, Button, Input, Layout, Menu, theme } from "antd";
@@ -21,12 +21,16 @@ import { Conversation } from "../../apis/chat/types/conversation.dto";
 import { GetUserFriends } from "../../apis/chat/relationship.service";
 import { Relationship } from "../../apis/chat/types/relationship.dto";
 import { UserInformation } from "../../apis/chat/types/user-information.dto";
+import { CreateNewMessage } from "../../apis/chat/message.service";
+import { CreateMessagePayload } from "../../apis/chat/types/dto/create-message-payload.dto";
 
 const { Content, Sider } = Layout;
 type SideBarItem = Required<MenuProps>["items"][number];
 type SearchProps = GetProps<typeof Input.Search>;
 
 const { Search } = Input;
+
+// TODO: implement on search functionality
 const onSearch: SearchProps["onSearch"] = (value, _e, info) =>
   console.log(info?.source, value);
 
@@ -34,11 +38,18 @@ export const ChatPage: React.FC = () => {
   const authenticationContext: AuthenticationContextProp = useAuth();
   const [sidebarData, setSidebarData] = useState<SideBarItem[]>([]);
   const [activeConversation, setActiveConversation] = useState<string>("");
+  const [targetUser, setTargetUser] = useState<string>("");
   const [sidebarActiveTab, setSidebarActiveTab] =
     useState<string>("conversation");
+  const [message, setMessage] = useState<string>("");
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const handleMessageInputUpdate = (event: any) => {
+    event.preventDefault();
+    setMessage(event.target.value);
+  };
 
   const fetchUserFriendList = async () => {
     try {
@@ -109,15 +120,41 @@ export const ChatPage: React.FC = () => {
         authenticationContext.accessToken
       );
     }
+    const activeConversationFromLocalStorage: string | null =
+      localStorage.getItem("activeConversation");
+    if (activeConversationFromLocalStorage) {
+      setActiveConversation(activeConversationFromLocalStorage);
+    }
 
     fetchParticipatedConversation();
   }, []);
 
-  const handleConversationSelected: MenuProps["onClick"] = (event: any) => {
-    console.log("Choosing:", event.key);
-    setActiveConversation(event.key);
+  useEffect(() => {
+    if (activeConversation) {
+      const selectedItem = sidebarData.find(
+        (item) => item?.key === activeConversation
+      );
+      if (selectedItem) {
+        setActiveConversation(selectedItem.key as string);
+      }
+    }
+  }, [sidebarData, activeConversation]);
+
+  const handleSidebarItemSelected: MenuProps["onClick"] = (event: any) => {
+    if (sidebarActiveTab === "conversation") {
+      console.log("Choosing conversation:", event.key);
+      if (event.key === activeConversation) {
+        return;
+      }
+      setActiveConversation(event.key);
+      localStorage.setItem("activeConversation", event.key);
+    } else {
+      console.log("Choosing user:", event.key);
+      setTargetUser(event.key);
+    }
   };
 
+  // TODO: Implement user profile page
   const handleProfileButtonClicked = (event: any) => {
     event.preventDefault();
     console.log("Go to profile");
@@ -135,6 +172,35 @@ export const ChatPage: React.FC = () => {
     if (sidebarActiveTab === "friend") return;
     setSidebarActiveTab("friend");
     await fetchUserFriendList();
+  };
+
+  // TODO: handle create new conversation and new relationship
+  const handleCreateNewItemButtonClicked = async (event: any) => {
+    if (sidebarActiveTab === "conversation") {
+      console.log("Create new conversation");
+    } else {
+      console.log("Create new relationship");
+    }
+  };
+
+  const handleSendMessageButtonClicked = async (event: any) => {
+    event.preventDefault();
+    try {
+      const payload: CreateMessagePayload = {
+        sendBy: authenticationContext.userInformation.id,
+        conversation: activeConversation,
+        message,
+      };
+      console.log("sending new message:", payload);
+      const response = await CreateNewMessage(
+        authenticationContext.accessToken,
+        payload
+      );
+      console.log("response:", response);
+      setMessage("");
+    } catch (error: any) {
+      console.log("error:", error);
+    }
   };
 
   return (
@@ -188,10 +254,17 @@ export const ChatPage: React.FC = () => {
                 onSearch={onSearch}
                 enterButton
               />
-              {/* <Button
-                icon={<FormOutlined />}
-                // onClick={handleNewChatButtonClicked}
-              /> */}
+              <Button
+                className="create-new-item"
+                icon={
+                  sidebarActiveTab === "friend" ? (
+                    <UserAddOutlined />
+                  ) : (
+                    <FormOutlined />
+                  )
+                }
+                onClick={handleCreateNewItemButtonClicked}
+              />
             </div>
           </div>
         </div>
@@ -199,39 +272,53 @@ export const ChatPage: React.FC = () => {
           mode="inline"
           theme="dark"
           items={sidebarData}
-          onClick={handleConversationSelected}
+          onClick={handleSidebarItemSelected}
+          selectedKeys={[activeConversation]}
         />
       </Sider>
       <Layout className="conversation-container">
-        <Content
-          className="message-container"
-          style={{
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
-          }}
-        >
-          <div>
-            <p>long content</p>
-            {Array.from({ length: 100 }, (_, index) => (
-              <React.Fragment key={index}>
-                {index % 20 === 0 && index ? "more" : "..."}
-                <br />
-              </React.Fragment>
-            ))}
-          </div>
-        </Content>
         <div
-          className="message-input"
-          style={{
-            background: colorBgContainer,
-          }}
+          className="messaging-section"
+          hidden={activeConversation ? false : true}
         >
-          <div className="texting-features">
-            <Button icon={<SmileOutlined />} />
-            <Button icon={<PaperClipOutlined />} />
+          <Content
+            className="message-container"
+            style={{
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+            <div>
+              <p>long content</p>
+              {Array.from({ length: 100 }, (_, index) => (
+                <React.Fragment key={index}>
+                  {index % 20 === 0 && index ? "more" : "..."}
+                  <br />
+                </React.Fragment>
+              ))}
+            </div>
+          </Content>
+          <div
+            className="message-input-section"
+            style={{
+              background: colorBgContainer,
+            }}
+          >
+            <div className="texting-features">
+              <Button icon={<SmileOutlined />} />
+              <Button icon={<PaperClipOutlined />} />
+            </div>
+            <Input
+              className="text-input"
+              placeholder="Message"
+              onChange={handleMessageInputUpdate}
+            />
+            <Button
+              type="primary"
+              icon={<SendOutlined />}
+              onClick={handleSendMessageButtonClicked}
+            />
           </div>
-          <Input className="text-input" placeholder="Message" />
-          <Button type="primary" icon={<SendOutlined />} />
         </div>
       </Layout>
     </Layout>

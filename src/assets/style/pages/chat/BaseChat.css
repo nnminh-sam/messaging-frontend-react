@@ -45,7 +45,7 @@
   padding: 24px;
 }
 
-.message-input {
+.message-input-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -97,4 +97,20 @@
 .conversation-tab:hover {
   background-color: #40a9ff;
   color: white;
+}
+
+.search-and-new-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.search-and-new-section .ant-input-search {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.create-new-item {
+  flex-shrink: 0;
 }
