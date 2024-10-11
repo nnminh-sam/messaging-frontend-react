@@ -37,7 +37,7 @@ export async function CreateNewRelationship(
 }
 
 export async function AcceptFriendship(token: string, relationshipId: string) {
-  const API_URL = `${BASE_API_URL}/confirm-friendship/${relationshipId}`;
+  const API_URL = `${BASE_API_URL}/accept/${relationshipId}`;
   try {
     const response: AxiosResponse<ApiResponse<Relationship>> = await axios.get(
       API_URL,
@@ -55,11 +55,8 @@ export async function DeclineRelationship(
 ) {
   const API_URL = `${BASE_API_URL}/${relationshipId}`;
   try {
-    const response: AxiosResponse<ApiResponse<Relationship>> = await axios.put(
-      API_URL,
-      { status: "AWAY" },
-      GetHeaderConfig(token)
-    );
+    const response: AxiosResponse<ApiResponse<Relationship>> =
+      await axios.delete(API_URL, GetHeaderConfig(token));
     return response.data;
   } catch (error: any) {
     throw new Error(error.response.data.message);

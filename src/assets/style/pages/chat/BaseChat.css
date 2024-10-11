@@ -106,11 +106,6 @@
   padding: 10px 0;
 }
 
-.search-and-new-section .ant-input-search {
-  flex: 1;
-  margin-right: 10px;
-}
-
 .create-new-item {
   flex-shrink: 0;
 }

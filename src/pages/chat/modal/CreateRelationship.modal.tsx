@@ -47,7 +47,6 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
       );
       handleSearch(currentPage);
     } catch (error) {
-      console.log("error:", error);
       authContext.logoutAction();
     }
   };
@@ -63,7 +62,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
       console.log("response:", response);
       handleSearch(currentPage);
     } catch (error) {
-      console.log("error:", error);
+      authContext.loginAction();
     }
   };
 
