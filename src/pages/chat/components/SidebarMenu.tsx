@@ -1,9 +1,6 @@
 import { Avatar, Button, Input, Layout, Menu, MenuProps, theme } from "antd";
 import {
   UserOutlined,
-  SendOutlined,
-  SmileOutlined,
-  PaperClipOutlined,
   WechatOutlined,
   CommentOutlined,
   FormOutlined,
@@ -36,13 +33,10 @@ export const SidebarMenu: React.FC = () => {
     setIsCreateRelationshipModalVisible,
   ] = useState<boolean>(false);
 
-  const fetchUserParticipatedConversation: any = async () => {
+  const fetchUserMembership: any = async () => {
     const response: ListApiResponse<Membership> =
       await GetParticipatedConversation(authContext.accessToken);
-    const conversations: Conversation[] = response.data.map((membership) => {
-      return membership.conversation;
-    });
-    return conversations;
+    return response.data;
   };
 
   const fetchFriendList: any = async () => {
@@ -69,22 +63,27 @@ export const SidebarMenu: React.FC = () => {
     }
   };
 
-  const setSideBarConversations: any = (conversations: Conversation[]) => {
-    const SideBarItems: SideBarItem[] = conversations.map((conversation) => {
+  const setSideBarConversations: any = (memberships: Membership[]) => {
+    const SideBarItems: SideBarItem[] = memberships.map((membership) => {
+      const conversation: Conversation = membership.conversation;
       if (!conversation || !conversation.name) {
         authContext.logoutAction();
       }
 
+      let conversationLabel: string = conversation.name;
       let privateConversationId: string | null = null;
       const match = conversation.name.match(/\[(.*?)\]/);
       if (match && match[1]) {
         privateConversationId = match[1];
       }
+      if (privateConversationId && membership.partner) {
+        conversationLabel = `${membership.partner.lastName} ${membership.partner.firstName}`;
+      }
 
       return {
         key: conversation.id,
         icon: <CommentOutlined />,
-        label: conversation.name,
+        label: conversationLabel,
       };
     });
     setSidebarData(SideBarItems);
@@ -104,8 +103,7 @@ export const SidebarMenu: React.FC = () => {
     if (sidebarActiveTab === "conversation") return;
     console.log("clicked");
     setSidebarActiveTab("conversation");
-    const conversations: Conversation[] =
-      await fetchUserParticipatedConversation();
+    const conversations: Conversation[] = await fetchUserMembership();
     setSideBarConversations(conversations);
   };
 
@@ -119,7 +117,7 @@ export const SidebarMenu: React.FC = () => {
 
   useEffect(() => {
     const execDefaultProcess: any = async () => {
-      setSideBarConversations(await fetchUserParticipatedConversation());
+      setSideBarConversations(await fetchUserMembership());
     };
 
     execDefaultProcess();

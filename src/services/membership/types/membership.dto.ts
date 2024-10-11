@@ -1,4 +1,5 @@
-import { Conversation } from "./conversation.dto";
+import { Conversation } from "../../conversation/types/conversation.dto";
+import { UserInformation } from "../../user/types/user-information.dto";
 
 export type Membership = {
   id: string;
@@ -6,6 +7,7 @@ export type Membership = {
   conversation: Conversation;
   role: string;
   status: string;
+  partner?: UserInformation;
   createdAt: Date;
   updatedAt: Date;
 };
