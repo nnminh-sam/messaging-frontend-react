@@ -38,7 +38,7 @@ const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
       const { data } = await GetUserInformation(token);
       setUserInformation(data);
     } catch (error: any) {
-      navigate("/");
+      navigate("/login");
     }
   };
 

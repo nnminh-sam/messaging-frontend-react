@@ -62,15 +62,16 @@ export const ChatPage: React.FC = () => {
       const response: ListApiResponse<Relationship> = await GetUserFriends(
         authenticationContext.accessToken
       );
-      const friends: UserInformation[] = response.data.map(
-        (relationship: Relationship) => {
-          return relationship.userA.id ===
-            authenticationContext.userInformation.id
-            ? relationship.userB
-            : relationship.userA;
+      let friends: UserInformation[] = [];
+      response.data.forEach((relationship: Relationship) => {
+        if (relationship.status === "FRIENDS") {
+          friends.push(
+            relationship.userA.id === authenticationContext.userInformation.id
+              ? relationship.userB
+              : relationship.userA
+          );
         }
-      );
-      console.log("friends:", friends);
+      });
       const SideBarItems: SideBarItem[] = friends.map((friend) => ({
         key: friend.id,
         icon: <UserOutlined />,
