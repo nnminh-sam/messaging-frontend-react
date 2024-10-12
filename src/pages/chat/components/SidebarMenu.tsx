@@ -15,6 +15,7 @@ import { ListApiResponse } from "../../../types/list-api-response.dto";
 import { Membership } from "../../../services/membership/types/membership.dto";
 import { GetParticipatedConversation } from "../../../services/membership/membership.service";
 import { CreateConversationModal } from "../modal/CreateConversation.modal";
+import { useNavigate } from "react-router-dom";
 
 type SideBarItem = Required<MenuProps>["items"][number];
 
@@ -22,15 +23,18 @@ type SearchProps = GetProps<typeof Input.Search>;
 
 const { Search } = Input;
 
-// TODO: update the conversation content to show the searching conversations
-const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
-  console.log("value:", value);
-};
+export interface SidebarMenuProp {
+  activeConversation: string;
+  setActiveConversation: (conversationId: string) => void;
+}
 
-export const SidebarMenu: React.FC = () => {
+export const SidebarMenu: React.FC<SidebarMenuProp> = ({
+  activeConversation,
+  setActiveConversation,
+}) => {
+  const navigate = useNavigate();
   const authContext: AuthenticationContextProp = useAuth();
   const [sidebarData, setSidebarData] = useState<SideBarItem[]>([]);
-  const [activeConversation, setActiveConversation] = useState<string>("");
   const [
     isCreateConversationModalVisible,
     setIsCreateConversationModalVisible,
@@ -78,24 +82,28 @@ export const SidebarMenu: React.FC = () => {
     setIsCreateConversationModalVisible(true);
   };
 
-  // TODO: Implement user profile page
-  const handleProfileButtonClicked = (event: any) => {
+  const handleProfileButtonClicked: any = (event: any) => {
     event.preventDefault();
-    console.log("Go to profile");
+    navigate("/profile");
   };
 
-  // TODO: Show the message component and update url with conversaiton id
+  // TODO: update the conversation content to show the searching conversations
+  const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
+    console.log("value:", value);
+  };
+
   const handleSidebarItemSelected: MenuProps["onClick"] = (event: any) => {
     if (event.key === activeConversation) {
       return;
     }
-    console.log("Choosing conversation:", event.key);
     setActiveConversation(event.key);
     localStorage.setItem("activeConversation", event.key);
+    navigate(`/${event.key}`, { replace: true });
   };
 
   const handleLogout = () => {
     localStorage.removeItem("activeConversation");
+    setActiveConversation("");
     authContext.logoutAction();
   };
 
