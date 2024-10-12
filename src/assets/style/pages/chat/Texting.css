@@ -17,19 +17,11 @@
   padding: 10px;
   border-top: 1px solid #e8e8e8;
   width: 100%;
+  gap: 5px;
 }
 
 .text-input {
   flex: 1;
-  margin-right: 10px;
-}
-
-.upload-button {
-  margin-right: 8px;
-}
-
-.send-button {
-  margin-left: 8px;
 }
 
 .texting-tools .ant-input {
