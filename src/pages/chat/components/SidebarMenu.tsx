@@ -14,110 +14,51 @@ import { Conversation } from "../../../services/conversation/types/conversation.
 import { ListApiResponse } from "../../../types/list-api-response.dto";
 import { Membership } from "../../../services/membership/types/membership.dto";
 import { GetParticipatedConversation } from "../../../services/membership/membership.service";
-import { UserInformation } from "../../../services/user/types/user-information.dto";
-import { Relationship } from "../../../services/relationship/types/relationship.dto";
-import { GetUserFriends } from "../../../services/relationship/relationship.service";
-import { CreateRelationshipModal } from "../modal/CreateRelationship.modal";
+import { CreateConversationModal } from "../modal/CreateConversation.modal";
 
 type SideBarItem = Required<MenuProps>["items"][number];
 
 export const SidebarMenu: React.FC = () => {
   const authContext: AuthenticationContextProp = useAuth();
-  const [sidebarActiveTab, setSidebarActiveTab] =
-    useState<string>("conversation");
   const [sidebarData, setSidebarData] = useState<SideBarItem[]>([]);
   const [activeConversation, setActiveConversation] = useState<string>("");
-  const [targetUser, setTargetUser] = useState<string>("");
   const [
-    isCreateRelationshipModalVisible,
-    setIsCreateRelationshipModalVisible,
+    isCreateConversationModalVisible,
+    setIsCreateConversationModalVisible,
   ] = useState<boolean>(false);
 
-  const fetchUserMembership: any = async () => {
-    const response: ListApiResponse<Membership> =
+  const fetchParticipatedConversation: any = async () => {
+    const userMembershipWithConversations: ListApiResponse<Membership> =
       await GetParticipatedConversation(authContext.accessToken);
-    return response.data;
-  };
-
-  const fetchFriendList: any = async () => {
-    try {
-      const response: ListApiResponse<Relationship> = await GetUserFriends(
-        authContext.accessToken
-      );
-      let friends: UserInformation[] = [];
-      response.data.forEach((relationship: Relationship) => {
-        if (relationship.status === "FRIENDS") {
-          friends.push(
-            relationship.userA.id === authContext.userInformation.id
-              ? relationship.userB
-              : relationship.userA
-          );
+    const SideBarItems: SideBarItem[] =
+      userMembershipWithConversations.data.map((membership) => {
+        const conversation: Conversation = membership.conversation;
+        if (!conversation || !conversation.name) {
+          authContext.logoutAction();
         }
+
+        let conversationLabel: string = conversation.name;
+        let privateConversationId: string | null = null;
+        const match = conversation.name.match(/\[(.*?)\]/);
+        if (match && match[1]) {
+          privateConversationId = match[1];
+        }
+        if (privateConversationId && membership.partner) {
+          conversationLabel = `${membership.partner.lastName} ${membership.partner.firstName}`;
+        }
+
+        return {
+          key: conversation.id,
+          icon: <CommentOutlined />,
+          label: conversationLabel,
+        };
       });
-      return friends;
-    } catch (error: any) {
-      if (error.message === "Unauthorized") {
-        authContext.logoutAction();
-      }
-      return [];
-    }
-  };
-
-  const setSideBarConversations: any = (memberships: Membership[]) => {
-    const SideBarItems: SideBarItem[] = memberships.map((membership) => {
-      const conversation: Conversation = membership.conversation;
-      if (!conversation || !conversation.name) {
-        authContext.logoutAction();
-      }
-
-      let conversationLabel: string = conversation.name;
-      let privateConversationId: string | null = null;
-      const match = conversation.name.match(/\[(.*?)\]/);
-      if (match && match[1]) {
-        privateConversationId = match[1];
-      }
-      if (privateConversationId && membership.partner) {
-        conversationLabel = `${membership.partner.lastName} ${membership.partner.firstName}`;
-      }
-
-      return {
-        key: conversation.id,
-        icon: <CommentOutlined />,
-        label: conversationLabel,
-      };
-    });
     setSidebarData(SideBarItems);
-  };
-
-  const setSideBarFriends: any = (friends: UserInformation[]) => {
-    const SideBarItems: SideBarItem[] = friends.map((friend) => ({
-      key: friend.id,
-      icon: <UserOutlined />,
-      label: `${friend.lastName} ${friend.firstName}`,
-    }));
-    setSidebarData(SideBarItems);
-  };
-
-  const handleConversationTabSelected: any = async (event?: any) => {
-    event.preventDefault();
-    if (sidebarActiveTab === "conversation") return;
-    console.log("clicked");
-    setSidebarActiveTab("conversation");
-    const conversations: Conversation[] = await fetchUserMembership();
-    setSideBarConversations(conversations);
-  };
-
-  const handleFriendTabSelected: any = async (event?: any) => {
-    event.preventDefault();
-    if (sidebarActiveTab === "friend") return;
-    setSidebarActiveTab("friend");
-    const friends: UserInformation[] = await fetchFriendList();
-    setSideBarFriends(friends);
   };
 
   useEffect(() => {
     const execDefaultProcess: any = async () => {
-      setSideBarConversations(await fetchUserMembership());
+      await fetchParticipatedConversation();
     };
 
     execDefaultProcess();
@@ -125,12 +66,7 @@ export const SidebarMenu: React.FC = () => {
 
   const handleCreateNewItemButtonClicked: any = async (event: any) => {
     event.preventDefault();
-    if (sidebarActiveTab === "conversation") {
-      console.log("Create new conversation");
-    } else {
-      console.log("Create new relationship");
-      setIsCreateRelationshipModalVisible(true);
-    }
+    setIsCreateConversationModalVisible(true);
   };
 
   // TODO: Implement user profile page
@@ -140,17 +76,12 @@ export const SidebarMenu: React.FC = () => {
   };
 
   const handleSidebarItemSelected: MenuProps["onClick"] = (event: any) => {
-    if (sidebarActiveTab === "conversation") {
-      console.log("Choosing conversation:", event.key);
-      if (event.key === activeConversation) {
-        return;
-      }
-      setActiveConversation(event.key);
-      localStorage.setItem("activeConversation", event.key);
-    } else {
-      console.log("Choosing user:", event.key);
-      setTargetUser(event.key);
+    if (event.key === activeConversation) {
+      return;
     }
+    console.log("Choosing conversation:", event.key);
+    setActiveConversation(event.key);
+    localStorage.setItem("activeConversation", event.key);
   };
 
   return (
@@ -177,40 +108,13 @@ export const SidebarMenu: React.FC = () => {
           </p>
         </div>
         <div className="tool-box">
-          <div className="tab-section">
-            <Button
-              className={`conversation-tab ${
-                sidebarActiveTab === "conversation" ? "active-tab" : ""
-              }`}
-              icon={<WechatOutlined />}
-              onClick={handleConversationTabSelected}
-            >
-              Conversations
-            </Button>
-            <Button
-              className={`friend-tab ${
-                sidebarActiveTab === "friend" ? "active-tab" : ""
-              }`}
-              icon={<UserOutlined />}
-              onClick={handleFriendTabSelected}
-            >
-              Relationships
-            </Button>
-          </div>
+          <div className="tab-section"></div>
           <div className="search-and-new-section">
             <Button
               className="create-new-item"
-              icon={
-                sidebarActiveTab === "friend" ? (
-                  <UserAddOutlined />
-                ) : (
-                  <FormOutlined />
-                )
-              }
+              icon={<FormOutlined />}
               onClick={handleCreateNewItemButtonClicked}
-            >
-              New {sidebarActiveTab === "friend" ? "friend" : "conversation"}
-            </Button>
+            />
           </div>
         </div>
       </div>
@@ -221,12 +125,12 @@ export const SidebarMenu: React.FC = () => {
         onClick={handleSidebarItemSelected}
         selectedKeys={[activeConversation]}
       />
-      <CreateRelationshipModal
-        accessToken={authContext.accessToken}
-        logoutAction={authContext.logoutAction}
-        visible={isCreateRelationshipModalVisible}
-        onClose={() => setIsCreateRelationshipModalVisible(false)}
-        userA={authContext.userInformation.id}
+      <CreateConversationModal
+        visible={isCreateConversationModalVisible}
+        onClose={async () => {
+          setIsCreateConversationModalVisible(false);
+        }}
+        onSuccess={fetchParticipatedConversation} // Pass the fetch function here
       />
     </Sider>
   );

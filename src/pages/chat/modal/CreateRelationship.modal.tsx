@@ -74,7 +74,6 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
         authContext.accessToken,
         relationshipId
       );
-      console.log("response:", response);
       handleSearch(currentPage);
     } catch (error) {
       console.log("error:", error);
@@ -97,7 +96,6 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
           "firstName",
           "asc"
         );
-      console.log("response:", response);
       setUsers(response.data);
       setTotalUsers(response.metadata.pagination.totalDocument);
     } catch (error) {
