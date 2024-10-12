@@ -1,0 +1,48 @@
+.chat-sidebar {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.chat-sidebar .user-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  background-color: white;
+  padding: 10px;
+}
+
+.chat-sidebar .user-section .full-name {
+  margin-left: 10px;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+.chat-sidebar .user-section .profile-button {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.tool-box {
+  width: 100%;
+}
+
+.search-and-new-section {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.create-new-item {
+  flex-shrink: 0;
+  margin-right: 0;
+  color: blue;
+}
+
+.conversation-list {
+  margin-top: 10px;
+}

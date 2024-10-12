@@ -1,10 +1,21 @@
-import { Avatar, Button, Input, Layout, Menu, MenuProps, theme } from "antd";
+import "../../../assets/style/pages/chat/SidebarMenu.css";
+import {
+  Avatar,
+  Button,
+  GetProps,
+  Input,
+  Layout,
+  Menu,
+  MenuProps,
+  theme,
+} from "antd";
 import {
   UserOutlined,
   WechatOutlined,
   CommentOutlined,
   FormOutlined,
   UserAddOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import Sider from "antd/es/layout/Sider";
 import React, { useEffect, useState } from "react";
@@ -17,6 +28,15 @@ import { GetParticipatedConversation } from "../../../services/membership/member
 import { CreateConversationModal } from "../modal/CreateConversation.modal";
 
 type SideBarItem = Required<MenuProps>["items"][number];
+
+type SearchProps = GetProps<typeof Input.Search>;
+
+const { Search } = Input;
+
+const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
+  console.log("value:", value);
+  // console.log(info?.source, value);
+};
 
 export const SidebarMenu: React.FC = () => {
   const authContext: AuthenticationContextProp = useAuth();
@@ -108,17 +128,24 @@ export const SidebarMenu: React.FC = () => {
           </p>
         </div>
         <div className="tool-box">
-          <div className="tab-section"></div>
           <div className="search-and-new-section">
             <Button
               className="create-new-item"
               icon={<FormOutlined />}
               onClick={handleCreateNewItemButtonClicked}
+              variant="outlined"
+            />
+            <Search
+              placeholder="input search text"
+              onSearch={onSearch}
+              enterButton
+              name="conversation-search-box"
             />
           </div>
         </div>
       </div>
       <Menu
+        className="conversation-list"
         mode="inline"
         theme="dark"
         items={sidebarData}
@@ -127,10 +154,8 @@ export const SidebarMenu: React.FC = () => {
       />
       <CreateConversationModal
         visible={isCreateConversationModalVisible}
-        onClose={async () => {
-          setIsCreateConversationModalVisible(false);
-        }}
-        onSuccess={fetchParticipatedConversation} // Pass the fetch function here
+        onClose={() => setIsCreateConversationModalVisible(false)}
+        onSuccess={fetchParticipatedConversation}
       />
     </Sider>
   );
