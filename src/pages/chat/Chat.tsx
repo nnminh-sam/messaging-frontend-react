@@ -1,15 +1,23 @@
 import "../../assets/style/pages/chat/BaseChat.css";
 import React, { useState, useEffect } from "react";
-import { Button, Input, Layout, theme } from "antd";
-import { useAuth } from "../../components/auth/AuthenticationProvider";
-import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
+import { Layout } from "antd";
 import { SidebarMenu } from "./components/SidebarMenu";
-import { Route, Routes } from "react-router-dom";
 import Texting from "./components/Texting";
+import { useNavigate } from "react-router-dom";
 
 export const ChatPage: React.FC = () => {
-  const authenticationContext: AuthenticationContextProp = useAuth();
+  const navigate = useNavigate();
   const [activeConversation, setActiveConversation] = useState<string>("");
+
+  useEffect(() => {
+    const activeConversationFromLocalStorage: string | null =
+      localStorage.getItem("activeConversation");
+    if (!activeConversationFromLocalStorage) {
+      return;
+    }
+    setActiveConversation(activeConversationFromLocalStorage);
+    navigate(`/${activeConversationFromLocalStorage}`, { replace: true });
+  }, []);
 
   return (
     <Layout className="chat-container" hasSider>
@@ -19,13 +27,10 @@ export const ChatPage: React.FC = () => {
       />
       <div className="texting-section">
         {activeConversation ? (
-          <Texting conversationId={activeConversation} />
+          <Texting />
         ) : (
           <p>Select a conversation to start chatting</p>
         )}
-        {/* <Routes>
-          <Route path="/chat/:conversationId" element={<Texting />} />
-        </Routes> */}
       </div>
     </Layout>
   );

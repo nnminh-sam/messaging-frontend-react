@@ -1,0 +1,37 @@
+.texting-component {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+.message-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.texting-tools {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-top: 1px solid #e8e8e8;
+  width: 100%;
+}
+
+.text-input {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.upload-button {
+  margin-right: 8px;
+}
+
+.send-button {
+  margin-left: 8px;
+}
+
+.texting-tools .ant-input {
+  flex-grow: 1;
+}
