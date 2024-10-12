@@ -1,21 +1,10 @@
 import "../../../assets/style/pages/chat/SidebarMenu.css";
-import {
-  Avatar,
-  Button,
-  GetProps,
-  Input,
-  Layout,
-  Menu,
-  MenuProps,
-  theme,
-} from "antd";
+import { Button, GetProps, Input, Menu, MenuProps } from "antd";
 import {
   UserOutlined,
-  WechatOutlined,
   CommentOutlined,
   FormOutlined,
-  UserAddOutlined,
-  SearchOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import Sider from "antd/es/layout/Sider";
 import React, { useEffect, useState } from "react";
@@ -33,9 +22,9 @@ type SearchProps = GetProps<typeof Input.Search>;
 
 const { Search } = Input;
 
+// TODO: update the conversation content to show the searching conversations
 const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
   console.log("value:", value);
-  // console.log(info?.source, value);
 };
 
 export const SidebarMenu: React.FC = () => {
@@ -95,6 +84,7 @@ export const SidebarMenu: React.FC = () => {
     console.log("Go to profile");
   };
 
+  // TODO: Show the message component and update url with conversaiton id
   const handleSidebarItemSelected: MenuProps["onClick"] = (event: any) => {
     if (event.key === activeConversation) {
       return;
@@ -104,28 +94,33 @@ export const SidebarMenu: React.FC = () => {
     localStorage.setItem("activeConversation", event.key);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("activeConversation");
+    authContext.logoutAction();
+  };
+
   return (
     <Sider className="chat-sidebar" width={300}>
       <div className="sidebar-header">
         <div className="user-section">
           <Button
             className="profile-button"
-            icon={
-              <Avatar
-                className="user-photo"
-                icon={<UserOutlined />}
-                alt="User"
-                size="large"
-              />
-            }
+            icon={<UserOutlined />}
             shape="circle"
             onClick={handleProfileButtonClicked}
+            variant="outlined"
           />
           <p className="full-name">
             {authContext.userInformation
               ? authContext.userInformation.fullName
               : "Loading..."}
           </p>
+          <Button
+            className="logout-button"
+            onClick={handleLogout}
+            icon={<LogoutOutlined />}
+            danger
+          />
         </div>
         <div className="tool-box">
           <div className="search-and-new-section">

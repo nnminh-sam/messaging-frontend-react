@@ -6,15 +6,22 @@
 .chat-sidebar .user-section {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
+  justify-content: space-between;
   width: 100%;
-  background-color: white;
   padding: 10px;
+  background-color: white;
+}
+
+.chat-sidebar .user-section .user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .chat-sidebar .user-section .full-name {
-  margin-left: 10px;
+  flex-grow: 1;
+  text-align: center;
+  margin: 0;
   white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -23,8 +30,10 @@
 
 .chat-sidebar .user-section .profile-button {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+}
+
+.chat-sidebar .user-section .logout-button {
+  flex-shrink: 0;
 }
 
 .tool-box {
