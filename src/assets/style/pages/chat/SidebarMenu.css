@@ -1,6 +1,7 @@
 .chat-sidebar {
   height: 100vh;
   overflow-y: auto;
+  background-color: white;
 }
 
 .chat-sidebar .user-section {
@@ -54,4 +55,15 @@
 
 .conversation-list {
   margin-top: 10px;
+  background-color: white;
+}
+
+.ant-menu-item {
+  color: black !important;
+  background-color: #f7f7f8 !important;
+}
+
+.ant-menu-item-selected {
+  color: white !important;
+  background-color: #1677ff !important;
 }
