@@ -3,13 +3,20 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { List, Input, Button, Upload, Layout, Avatar } from "antd";
 import { UploadOutlined, UserOutlined } from "@ant-design/icons";
-import { CreateNewMessage } from "../../../services/message/message.service";
+import {
+  CreateNewMessage,
+  FetchMessage,
+} from "../../../services/message/message.service";
+import { FetchMessageDto } from "../../../services/message/types/fetch-message.dto";
 import { CreateMessagePayload } from "../../../services/message/types/create-message-payload.dto";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import { JoinRoomDto } from "../types/join-room.dto";
 import { io, Socket } from "socket.io-client";
 import { NewMessageDto } from "../types/new-message.dto";
+import { ListApiResponse } from "../../../types/list-api-response.dto";
+import { Message } from "../../../services/message/types/message.dto";
+import { ErrorResponse } from "../../../types/error-response.dto";
 
 const { Content } = Layout;
 
@@ -37,10 +44,35 @@ const Texting: React.FC = () => {
       Authorization: `${authContext.accessToken}`,
     },
   });
-  const [messages, setMessages] = useState<NewMessageDto[]>([]);
+  const [messages, setMessages] = useState<Record<string, Message>>({});
   const [newMessage, setNewMessage] = useState<string>("");
+  const messageListRef = React.useRef<HTMLDivElement | null>(null);
+
+  const FetchMessageToDisplay: any = async (payload: FetchMessageDto) => {
+    const response: ListApiResponse<Message> | ErrorResponse =
+      await FetchMessage(authContext.accessToken, payload);
+    // console.log("response:", response);
+    if ("data" in response) {
+      response.data.map((message: Message) => {
+        setMessages((prevMessages) => ({
+          [message.id]: message,
+          ...prevMessages,
+        }));
+      });
+      if (messageListRef.current) {
+        messageListRef.current.scrollIntoView({ behavior: "instant" });
+      }
+    }
+  };
 
   useEffect(() => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    setMessages({});
     if (!conversationId) {
       navigate("/");
       return;
@@ -59,15 +91,24 @@ const Texting: React.FC = () => {
       return true;
     };
     const joinedRoom = joinRoom();
+
     if (joinedRoom) {
-      
+      const payload: FetchMessageDto = {
+        conversationId,
+        page: 1,
+        size: 10,
+      };
+      FetchMessageToDisplay(payload);
     }
   }, [conversationId]);
 
   if (socket) {
-    socket.on("newMessage", (payload: NewMessageDto) => {
+    socket.on("newMessage", (payload: Message) => {
       console.log("new message:", payload);
-      setMessages((prevMessages) => [...prevMessages, payload]);
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        [payload.id]: payload,
+      }));
     });
   } else {
     console.log("no socket");
@@ -87,7 +128,13 @@ const Texting: React.FC = () => {
         message: newMessage,
       };
       const response = await CreateNewMessage(authContext.accessToken, payload);
-      console.log("response:", response);
+      if ("data" in response) {
+        const newMessage: Message = response.data;
+        setMessages((prevMessages) => ({
+          ...prevMessages,
+          [newMessage.id]: newMessage,
+        }));
+      }
       setNewMessage("");
     } catch (error: any) {
       alert(`An error appeared: ${error.response.data.message}`);
@@ -95,6 +142,7 @@ const Texting: React.FC = () => {
     }
   };
 
+  // TODO: handle file upload
   const handleUploadImage = (file: any) => {
     console.log("Uploaded file:", file);
 
@@ -104,11 +152,12 @@ const Texting: React.FC = () => {
   return (
     <Layout className="texting-component">
       <Content className="message-container">
-        <h2>Conversation ID: {conversationId}</h2>
         <List
+          // ref={messageListRef} // Attach the ref to the List component
+          className="message-list"
           bordered
-          dataSource={messages}
-          renderItem={(data: NewMessageDto) => (
+          dataSource={Object.values(messages)}
+          renderItem={(data: Message) => (
             <List.Item>
               <List.Item.Meta
                 avatar={
@@ -119,15 +168,16 @@ const Texting: React.FC = () => {
                       icon={<UserOutlined />}
                       size={"large"}
                     />
-                    <p className="sender-name">{`${data.sender.lastName} ${data.sender.firstName}`}</p>
+                    <p className="sender-name">{`${data.sendBy.lastName} ${data.sendBy.firstName}`}</p>
                   </div>
                 }
                 title={`${data.message}`}
-                description={`${formatTimestamp(data.timestamp)}`}
+                description={`${formatTimestamp(data.createdAt)}`}
               />
             </List.Item>
           )}
         />
+        <span ref={messageListRef}></span>
       </Content>
       <div className="texting-tools">
         <Upload

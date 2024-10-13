@@ -1,4 +1,4 @@
-import { Conversation } from "./conversation.dto";
+import { Conversation } from "../../conversation/types/conversation.dto";
 import { UserInformation } from "../../user/types/user-information.dto";
 
 export type Message = {
