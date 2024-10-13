@@ -1,28 +1,77 @@
 import "../../../assets/style/pages/chat/Texting.css";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { List, Input, Button, Upload, Layout } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { useNavigate, useParams } from "react-router-dom";
+import { List, Input, Button, Upload, Layout, Avatar } from "antd";
+import { UploadOutlined, UserOutlined } from "@ant-design/icons";
 import { CreateNewMessage } from "../../../services/message/message.service";
 import { CreateMessagePayload } from "../../../services/message/types/create-message-payload.dto";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
+import { JoinRoomDto } from "../types/join-room.dto";
+import { io, Socket } from "socket.io-client";
+import { NewMessageDto } from "../types/new-message.dto";
 
 const { Content } = Layout;
 
+const SOCKET_SERVER_URL = "http://localhost:3001";
+
+function formatTimestamp(timestamp) {
+  const date = new Date(timestamp);
+
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // Months are zero-based
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, "0");
+  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+  const seconds = String(date.getUTCSeconds()).padStart(2, "0");
+
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
+
 const Texting: React.FC = () => {
+  const navigate = useNavigate();
   const authContext: AuthenticationContextProp = useAuth();
   const { conversationId } = useParams<{ conversationId: string }>();
-  const [messages, setMessages] = useState<string[]>([]);
+  const socket: Socket = io(SOCKET_SERVER_URL, {
+    extraHeaders: {
+      Authorization: `${authContext.accessToken}`,
+    },
+  });
+  const [messages, setMessages] = useState<NewMessageDto[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
 
   useEffect(() => {
-    // Logic to fetch messages for the conversation can be added here
-    console.log("Fetching messages for conversation ID:", conversationId);
-    // Example: fetchMessages(conversationId);
-    // For demonstration, we'll use dummy messages
-    setMessages(["Hello!", "How are you?", "This is a sample message."]);
+    if (!conversationId) {
+      navigate("/");
+      return;
+    }
+
+    const joinRoom = () => {
+      if (!socket) {
+        console.log("no socket");
+        return false;
+      }
+
+      const joinRoomPayload: JoinRoomDto = {
+        roomId: conversationId,
+      };
+      socket.emit("joinRoom", joinRoomPayload);
+      return true;
+    };
+    const joinedRoom = joinRoom();
+    if (joinedRoom) {
+      
+    }
   }, [conversationId]);
+
+  if (socket) {
+    socket.on("newMessage", (payload: NewMessageDto) => {
+      console.log("new message:", payload);
+      setMessages((prevMessages) => [...prevMessages, payload]);
+    });
+  } else {
+    console.log("no socket");
+  }
 
   const handleSendMessage = async (event: any) => {
     event.preventDefault();
@@ -59,7 +108,25 @@ const Texting: React.FC = () => {
         <List
           bordered
           dataSource={messages}
-          renderItem={(item) => <List.Item>{item}</List.Item>}
+          renderItem={(data: NewMessageDto) => (
+            <List.Item>
+              <List.Item.Meta
+                avatar={
+                  <div className="message-sender-information">
+                    <Avatar
+                      className="sender-photo"
+                      src="https://api.dicebear.com/7.x/miniavs/svg?seed=1"
+                      icon={<UserOutlined />}
+                      size={"large"}
+                    />
+                    <p className="sender-name">{`${data.sender.lastName} ${data.sender.firstName}`}</p>
+                  </div>
+                }
+                title={`${data.message}`}
+                description={`${formatTimestamp(data.timestamp)}`}
+              />
+            </List.Item>
+          )}
         />
       </Content>
       <div className="texting-tools">

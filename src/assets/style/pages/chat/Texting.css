@@ -9,6 +9,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 24px;
+  font-size: 16px;
 }
 
 .texting-tools {
@@ -26,4 +27,15 @@
 
 .texting-tools .ant-input {
   flex-grow: 1;
+}
+
+.message-sender-information {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ant-list-item-meta-title {
+  font-size: 16px !important;
 }
