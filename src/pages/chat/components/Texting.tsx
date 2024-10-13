@@ -11,12 +11,12 @@ import { FetchMessageDto } from "../../../services/message/types/fetch-message.d
 import { CreateMessagePayload } from "../../../services/message/types/create-message-payload.dto";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
-import { JoinRoomDto } from "../types/join-room.dto";
 import { io, Socket } from "socket.io-client";
-import { NewMessageDto } from "../types/new-message.dto";
 import { ListApiResponse } from "../../../types/list-api-response.dto";
 import { Message } from "../../../services/message/types/message.dto";
 import { ErrorResponse } from "../../../types/error-response.dto";
+import { fetchConversationById } from "../../../services/conversation/conversation.service";
+import { Conversation } from "../../../services/conversation/types/conversation.dto";
 
 const { Content } = Layout;
 
@@ -26,7 +26,7 @@ function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
 
   const day = String(date.getUTCDate()).padStart(2, "0");
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // Months are zero-based
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
   const year = date.getUTCFullYear();
   const hours = String(date.getUTCHours()).padStart(2, "0");
   const minutes = String(date.getUTCMinutes()).padStart(2, "0");
@@ -35,40 +35,53 @@ function formatTimestamp(timestamp) {
   return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 }
 
+function scrollToBottom(messageListRef: any) {
+  if (messageListRef.current) {
+    messageListRef.current.scrollIntoView({ behavior: "instant" });
+  }
+}
+
 const Texting: React.FC = () => {
   const navigate = useNavigate();
   const authContext: AuthenticationContextProp = useAuth();
-  const { conversationId } = useParams<{ conversationId: string }>();
   const socket: Socket = io(SOCKET_SERVER_URL, {
     extraHeaders: {
       Authorization: `${authContext.accessToken}`,
     },
   });
+  const messageListRef = React.useRef<HTMLDivElement | null>(null);
+  const { conversationId } = useParams<{ conversationId: string }>();
+  const [conversation, setConversation] = useState<Conversation>({
+    id: "",
+    name: "",
+    description: "",
+    createdAt: new Date(),
+    createdBy: "",
+    host: "",
+    updatedAt: new Date(),
+  });
   const [messages, setMessages] = useState<Record<string, Message>>({});
   const [newMessage, setNewMessage] = useState<string>("");
-  const messageListRef = React.useRef<HTMLDivElement | null>(null);
 
-  const FetchMessageToDisplay: any = async (payload: FetchMessageDto) => {
+  // ? This function currently cannot replace for the logic of "newMessage" listener
+  const updateMessages: any = (message: Message) => {
+    setMessages((prevMessages) => ({
+      [message.id]: message,
+      ...prevMessages,
+    }));
+  };
+
+  const fetchMessageToDisplay: any = async (payload: FetchMessageDto) => {
     const response: ListApiResponse<Message> | ErrorResponse =
       await FetchMessage(authContext.accessToken, payload);
-    // console.log("response:", response);
     if ("data" in response) {
-      response.data.map((message: Message) => {
-        setMessages((prevMessages) => ({
-          [message.id]: message,
-          ...prevMessages,
-        }));
-      });
-      if (messageListRef.current) {
-        messageListRef.current.scrollIntoView({ behavior: "instant" });
-      }
+      response.data.map(updateMessages);
+      scrollToBottom(messageListRef);
     }
   };
 
   useEffect(() => {
-    if (messageListRef.current) {
-      messageListRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    scrollToBottom(messageListRef);
   }, [messages]);
 
   useEffect(() => {
@@ -78,43 +91,51 @@ const Texting: React.FC = () => {
       return;
     }
 
-    const joinRoom = () => {
+    const fetchConversationData = async () => {
+      const response = await fetchConversationById(
+        authContext.accessToken,
+        conversationId
+      );
+      if ("data" in response) {
+        console.log("response:", response.data);
+        setConversation(response.data);
+      } else {
+        navigate("/");
+      }
+    };
+
+    const joinRoomAndFetchMessages = () => {
       if (!socket) {
+        // TODO: handle no socket (bad socket connection error) if needed?
         console.log("no socket");
         return false;
       }
 
-      const joinRoomPayload: JoinRoomDto = {
-        roomId: conversationId,
-      };
-      socket.emit("joinRoom", joinRoomPayload);
-      return true;
-    };
-    const joinedRoom = joinRoom();
-
-    if (joinedRoom) {
-      const payload: FetchMessageDto = {
+      socket.emit("joinRoom", { roomId: conversationId });
+      fetchMessageToDisplay({
         conversationId,
         page: 1,
         size: 10,
-      };
-      FetchMessageToDisplay(payload);
-    }
+      });
+    };
+
+    fetchConversationData();
+    joinRoomAndFetchMessages();
   }, [conversationId]);
 
   if (socket) {
-    socket.on("newMessage", (payload: Message) => {
-      console.log("new message:", payload);
+    socket.on("newMessage", (receivedMessage: Message) => {
       setMessages((prevMessages) => ({
         ...prevMessages,
-        [payload.id]: payload,
+        [receivedMessage.id]: receivedMessage,
       }));
     });
   } else {
     console.log("no socket");
   }
 
-  const handleSendMessage = async (event: any) => {
+  // TODO: Update send message error alert
+  const sendMessageHandler = async (event: any) => {
     event.preventDefault();
 
     if (!newMessage.trim() || !conversationId) {
@@ -122,12 +143,15 @@ const Texting: React.FC = () => {
     }
 
     try {
-      const payload: CreateMessagePayload = {
+      const createMessagePayload: CreateMessagePayload = {
         sendBy: authContext.userInformation.id,
         conversation: conversationId,
         message: newMessage,
       };
-      const response = await CreateNewMessage(authContext.accessToken, payload);
+      const response = await CreateNewMessage(
+        authContext.accessToken,
+        createMessagePayload
+      );
       if ("data" in response) {
         const newMessage: Message = response.data;
         setMessages((prevMessages) => ({
@@ -151,14 +175,22 @@ const Texting: React.FC = () => {
 
   return (
     <Layout className="texting-component">
+      <div className="conversation-header">
+        <h3>{conversation.name}</h3>
+      </div>
       <Content className="message-container">
         <List
-          // ref={messageListRef} // Attach the ref to the List component
           className="message-list"
           bordered
           dataSource={Object.values(messages)}
-          renderItem={(data: Message) => (
-            <List.Item>
+          renderItem={(message: Message) => (
+            <List.Item
+              className={
+                message.sendBy.id === authContext.userInformation.id
+                  ? "sent-message"
+                  : "received-message"
+              }
+            >
               <List.Item.Meta
                 avatar={
                   <div className="message-sender-information">
@@ -168,11 +200,11 @@ const Texting: React.FC = () => {
                       icon={<UserOutlined />}
                       size={"large"}
                     />
-                    <p className="sender-name">{`${data.sendBy.lastName} ${data.sendBy.firstName}`}</p>
+                    <p className="sender-name">{`${message.sendBy.lastName} ${message.sendBy.firstName}`}</p>
                   </div>
                 }
-                title={`${data.message}`}
-                description={`${formatTimestamp(data.createdAt)}`}
+                title={`${message.message}`}
+                description={`${formatTimestamp(message.createdAt)}`}
               />
             </List.Item>
           )}
@@ -196,7 +228,7 @@ const Texting: React.FC = () => {
         <Button
           className="send-button"
           type="primary"
-          onClick={handleSendMessage}
+          onClick={sendMessageHandler}
         >
           Send
         </Button>

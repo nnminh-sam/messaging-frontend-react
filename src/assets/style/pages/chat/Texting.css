@@ -10,6 +10,19 @@
   overflow-y: auto;
   padding: 24px;
   font-size: 16px;
+  background-color: #f1f6f9;
+}
+
+.sent-message {
+  background-color: #4586ff;
+}
+
+.sent-message .ant-list-item-meta-title {
+  color: white !important;
+}
+
+.sent-message .ant-list-item-meta-description {
+  color: #fff7fc !important;
 }
 
 .texting-tools {
@@ -36,6 +49,30 @@
   justify-content: center;
 }
 
+.sent-message .message-sender-information p {
+  color: white;
+}
+
 .ant-list-item-meta-title {
   font-size: 16px !important;
+}
+
+.conversation-header {
+  padding-left: 25px !important;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: white;
+  z-index: 1000;
+  padding: 10px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-container {
+  margin-top: 70px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  font-size: 16px;
+  background-color: #f1f6f9;
 }
