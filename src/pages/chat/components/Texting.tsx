@@ -2,7 +2,7 @@ import "../../../assets/style/pages/chat/Texting.css";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { List, Input, Button, Upload, Layout, Avatar } from "antd";
-import { UploadOutlined, UserOutlined } from "@ant-design/icons";
+import { MoreOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
 import {
   CreateNewMessage,
   FetchMessage,
@@ -17,6 +17,7 @@ import { Message } from "../../../services/message/types/message.dto";
 import { ErrorResponse } from "../../../types/error-response.dto";
 import { fetchConversationById } from "../../../services/conversation/conversation.service";
 import { Conversation } from "../../../services/conversation/types/conversation.dto";
+import ConversationDetails from "../modal/ConversationDetail.modal";
 
 const { Content } = Layout;
 
@@ -62,6 +63,8 @@ const Texting: React.FC = () => {
   });
   const [messages, setMessages] = useState<Record<string, Message>>({});
   const [newMessage, setNewMessage] = useState<string>("");
+  const [showConversationDetail, setShowConversationDetail] =
+    useState<boolean>(false);
 
   // ? This function currently cannot replace for the logic of "newMessage" listener
   const updateMessages: any = (message: Message) => {
@@ -84,6 +87,7 @@ const Texting: React.FC = () => {
     scrollToBottom(messageListRef);
   }, [messages]);
 
+  // TODO: update the component so that parse the converesation data as the component param instead of making additional data fetching
   useEffect(() => {
     setMessages({});
     if (!conversationId) {
@@ -97,7 +101,6 @@ const Texting: React.FC = () => {
         conversationId
       );
       if ("data" in response) {
-        console.log("response:", response.data);
         setConversation(response.data);
       } else {
         navigate("/");
@@ -173,10 +176,21 @@ const Texting: React.FC = () => {
     return false;
   };
 
+  const moreInformationButtonPressHandler = () => {
+    console.log("show modal");
+    setShowConversationDetail(true);
+  };
+
   return (
     <Layout className="texting-component">
       <div className="conversation-header">
         <h3>{conversation.name}</h3>
+        <Button
+          className="setting-button"
+          icon={<MoreOutlined />}
+          type="text"
+          onClick={moreInformationButtonPressHandler}
+        />
       </div>
       <Content className="message-container">
         <List
@@ -233,6 +247,13 @@ const Texting: React.FC = () => {
           Send
         </Button>
       </div>
+      <ConversationDetails
+        conversation={conversation}
+        visible={showConversationDetail}
+        onClose={() => {
+          setShowConversationDetail(false);
+        }}
+      />
     </Layout>
   );
 };
