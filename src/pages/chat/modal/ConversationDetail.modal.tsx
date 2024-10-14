@@ -1,19 +1,24 @@
 import "../../../assets/style/pages/chat/ConversationDetail.css";
 
-import { Avatar, Button, List, Modal } from "antd";
+import { Avatar, Button, GetProps, Input, List, Modal } from "antd";
 import {
   AndroidOutlined,
   DeleteOutlined,
+  LeftOutlined,
+  RightOutlined,
   StopOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import React, { ReactNode, useEffect, useState } from "react";
-import { Conversation } from "../../../services/conversation/types/conversation.dto";
 import { ConversationDetailsModalProp } from "./types/ConversationDetailModalProp";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { fetchConversationParticipants } from "../../../services/membership/membership.service";
 import { UserInformation } from "../../../services/user/types/user-information.dto";
+import { FetchConversationParticipant } from "../../../services/membership/types/fetch-conversation-participant.dto";
+import AddUserToConversationModal from "./AddUserToConversation.modal";
+
+const USER_LIST_SIZE = 10;
 
 const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
   visible,
@@ -22,27 +27,47 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
 }) => {
   const authContext: AuthenticationContextProp = useAuth();
   const [conversationMembers, setConversationMembers] = useState<any[]>([]);
+  const [totalPage, setTotalPage] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [addMemberModalVisibility, setAddMemberModalVisibility] =
+    useState<boolean>(false);
 
   const modalCloseHandler = () => {
+    setAddMemberModalVisibility(false);
+    setConversationMembers([]);
+    setCurrentPage(1);
+    setTotalPage(0);
     onClose();
   };
 
-  const fetchConversationParticipantHandler = async () => {
+  const fetchConversationParticipantHandler = async (
+    payload: FetchConversationParticipant
+  ) => {
     const response = await fetchConversationParticipants(
       authContext.accessToken,
-      {
-        conversationId: conversation.id,
-        page: 1,
-        size: 10,
-        sortBy: "firstName",
-        orderBy: "asc",
-      }
+      payload
     );
     if ("data" in response) {
       setConversationMembers(response.data);
+      setTotalPage(response.metadata.pagination.totalPage);
     } else if ("status" in response && response.status === "error") {
       authContext.logoutAction();
     }
+  };
+
+  const PageChangeHandler = (page: number) => {
+    if (page === currentPage) {
+      return;
+    }
+
+    setCurrentPage(page);
+    fetchConversationParticipantHandler({
+      conversationId: conversation.id,
+      page: page,
+      size: USER_LIST_SIZE,
+      sortBy: "firstName",
+      orderBy: "asc",
+    });
   };
 
   const conversationMembersDataRender: any = (
@@ -79,9 +104,13 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
           <></>
         ) : (
           <div className="group-conversation-options">
-            <Button className="block-user-button" icon={<AndroidOutlined />}>
-              Set as Host
-            </Button>
+            {membership.role !== "HOST" ? (
+              <Button className="block-user-button" icon={<AndroidOutlined />}>
+                Set as Host
+              </Button>
+            ) : (
+              <></>
+            )}
             <Button
               className="remove-user-button"
               icon={<DeleteOutlined />}
@@ -99,13 +128,18 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
     );
   };
 
-  // * This triggered when the modal is opened
   useEffect(() => {
     if (!visible) {
       return;
     }
 
-    fetchConversationParticipantHandler();
+    fetchConversationParticipantHandler({
+      conversationId: conversation.id,
+      page: currentPage,
+      size: USER_LIST_SIZE,
+      sortBy: "firstName",
+      orderBy: "asc",
+    });
   }, [visible]);
 
   return (
@@ -129,9 +163,39 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
             dataSource={conversationMembers}
             renderItem={conversationMembersDataRender}
           />
+          <div className="pagination-section">
+            {Array.from({ length: totalPage }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                type={currentPage === page ? "primary" : "default"}
+                onClick={() => PageChangeHandler(page)}
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
         </div>
         <div className="container-footer">
-          <Button type="primary">Add member</Button>
+          <Button
+            type="primary"
+            onClick={() => setAddMemberModalVisibility(true)}
+          >
+            Add member
+          </Button>
+          <AddUserToConversationModal
+            visible={addMemberModalVisibility}
+            conversation={conversation}
+            onClose={() => {
+              setAddMemberModalVisibility(false);
+              fetchConversationParticipantHandler({
+                conversationId: conversation.id,
+                page: currentPage,
+                size: USER_LIST_SIZE,
+                sortBy: "firstName",
+                orderBy: "asc",
+              });
+            }}
+          />
         </div>
       </div>
     </Modal>
