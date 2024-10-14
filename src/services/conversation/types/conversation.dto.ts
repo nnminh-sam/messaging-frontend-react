@@ -6,4 +6,5 @@ export type Conversation = {
   host: string;
   createdAt: Date;
   updatedAt: Date;
+  type: string;
 };

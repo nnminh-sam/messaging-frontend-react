@@ -123,7 +123,6 @@ const Texting: React.FC = () => {
 
   // TODO: update the component so that parse the converesation data as the component param instead of making additional data fetching
   useEffect(() => {
-    console.log("fetchable:", fetchable);
     setFetchable(true);
     setMessages({});
     if (!conversationId) {
