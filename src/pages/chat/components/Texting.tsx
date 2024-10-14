@@ -64,6 +64,7 @@ const Texting: React.FC = () => {
   const [newMessage, setNewMessage] = useState<string>("");
   const [showConversationDetail, setShowConversationDetail] =
     useState<boolean>(false);
+  const [fetchable, setFetchable] = useState<boolean>(true);
   const [page, setPage] = useState(1);
   const [isFetchingOldMessages, setIsFetchingOldMessages] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState<boolean>(false);
@@ -95,11 +96,17 @@ const Texting: React.FC = () => {
     }));
   };
 
+  // TODO: add an message to notify the user that is all the messages is shown
   const fetchMessagesHandler: any = async (payload: FetchMessageDto) => {
+    if (!fetchable) {
+      return;
+    }
     const response: ListApiResponse<Message> | ErrorResponse =
       await FetchMessage(authContext.accessToken, payload);
-    console.log("fetch");
     if ("data" in response) {
+      if (response.metadata.pagination.totalPage === payload.page) {
+        setFetchable(false);
+      }
       response.data.map(updateMessages);
     } else if ("status" in response && response.status === "error") {
       authContext.logoutAction();
@@ -116,6 +123,8 @@ const Texting: React.FC = () => {
 
   // TODO: update the component so that parse the converesation data as the component param instead of making additional data fetching
   useEffect(() => {
+    console.log("fetchable:", fetchable);
+    setFetchable(true);
     setMessages({});
     if (!conversationId) {
       authContext.logoutAction();
