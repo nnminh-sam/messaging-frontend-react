@@ -55,6 +55,12 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
     }
   };
 
+  const setUserAsHostHandler = async () => {};
+
+  const removeUserHandler = async () => {};
+
+  const banUserHandler = async () => {};
+
   const PageChangeHandler = (page: number) => {
     if (page === currentPage) {
       return;
@@ -104,24 +110,33 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
           <></>
         ) : (
           <div className="group-conversation-options">
-            {membership.role !== "HOST" ? (
-              <Button className="block-user-button" icon={<AndroidOutlined />}>
-                Set as Host
-              </Button>
+            {membership.role !== "HOST" &&
+            conversation.host.id === authContext.userInformation.id ? (
+              <>
+                <Button
+                  className="block-user-button"
+                  icon={<AndroidOutlined />}
+                  onClick={setUserAsHostHandler}
+                >
+                  Set as Host
+                </Button>
+                <Button
+                  className="remove-user-button"
+                  icon={<DeleteOutlined />}
+                  danger
+                  onClick={removeUserHandler}
+                ></Button>
+                <Button
+                  className="block-user-button"
+                  icon={<StopOutlined />}
+                  variant="solid"
+                  color="danger"
+                  onClick={banUserHandler}
+                ></Button>
+              </>
             ) : (
               <></>
             )}
-            <Button
-              className="remove-user-button"
-              icon={<DeleteOutlined />}
-              danger
-            ></Button>
-            <Button
-              className="block-user-button"
-              icon={<StopOutlined />}
-              variant="solid"
-              color="danger"
-            ></Button>
           </div>
         )}
       </List.Item>
@@ -140,6 +155,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
       sortBy: "firstName",
       orderBy: "asc",
     });
+    console.log("conversation:", conversation);
   }, [visible]);
 
   return (
@@ -176,26 +192,32 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
           </div>
         </div>
         <div className="container-footer">
-          <Button
-            type="primary"
-            onClick={() => setAddMemberModalVisibility(true)}
-          >
-            Add member
-          </Button>
-          <AddUserToConversationModal
-            visible={addMemberModalVisibility}
-            conversation={conversation}
-            onClose={() => {
-              setAddMemberModalVisibility(false);
-              fetchConversationParticipantHandler({
-                conversationId: conversation.id,
-                page: currentPage,
-                size: USER_LIST_SIZE,
-                sortBy: "firstName",
-                orderBy: "asc",
-              });
-            }}
-          />
+          {conversation.host.id !== authContext.userInformation.id ? (
+            <></>
+          ) : (
+            <>
+              <Button
+                type="primary"
+                onClick={() => setAddMemberModalVisibility(true)}
+              >
+                Add member
+              </Button>
+              <AddUserToConversationModal
+                visible={addMemberModalVisibility}
+                conversation={conversation}
+                onClose={() => {
+                  setAddMemberModalVisibility(false);
+                  fetchConversationParticipantHandler({
+                    conversationId: conversation.id,
+                    page: currentPage,
+                    size: USER_LIST_SIZE,
+                    sortBy: "firstName",
+                    orderBy: "asc",
+                  });
+                }}
+              />
+            </>
+          )}
         </div>
       </div>
     </Modal>
