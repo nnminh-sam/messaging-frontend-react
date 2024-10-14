@@ -25,13 +25,13 @@ const AuthContext: Context<AuthenticationContextProp> = createContext(
 const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const navigate = useNavigate();
   const [accessToken, setAccessToken] = useState(
     localStorage.getItem("accessToken") || ""
   );
   const [userInformation, setUserInformation] = useState(
     GetDefaultUserInformation()
   );
-  const navigate = useNavigate();
 
   const getUserInformation = async (token: string) => {
     try {

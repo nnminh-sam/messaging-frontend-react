@@ -43,7 +43,6 @@ function scrollToBottom(messageListRef: any) {
 }
 
 const Texting: React.FC = () => {
-  const navigate = useNavigate();
   const authContext: AuthenticationContextProp = useAuth();
   const socket: Socket = io(SOCKET_SERVER_URL, {
     extraHeaders: {
@@ -65,6 +64,28 @@ const Texting: React.FC = () => {
   const [newMessage, setNewMessage] = useState<string>("");
   const [showConversationDetail, setShowConversationDetail] =
     useState<boolean>(false);
+  const [page, setPage] = useState(1);
+  const [isFetchingOldMessages, setIsFetchingOldMessages] = useState(false);
+  const [hasNewMessage, setHasNewMessage] = useState<boolean>(false);
+
+  const handleScroll = async (event: React.UIEvent<HTMLDivElement>) => {
+    if (!conversationId) {
+      authContext.logoutAction();
+      return;
+    }
+
+    const element = event.currentTarget;
+    if (element.scrollTop === 0 && !isFetchingOldMessages) {
+      setIsFetchingOldMessages(true);
+      await fetchMessagesHandler({
+        conversationId: conversationId,
+        page: page + 1,
+        size: 10,
+      });
+      setIsFetchingOldMessages(false);
+      setPage(page + 1);
+    }
+  };
 
   // ? This function currently cannot replace for the logic of "newMessage" listener
   const updateMessages: any = (message: Message) => {
@@ -74,24 +95,30 @@ const Texting: React.FC = () => {
     }));
   };
 
-  const fetchMessageToDisplay: any = async (payload: FetchMessageDto) => {
+  const fetchMessagesHandler: any = async (payload: FetchMessageDto) => {
     const response: ListApiResponse<Message> | ErrorResponse =
       await FetchMessage(authContext.accessToken, payload);
+    console.log("fetch");
     if ("data" in response) {
       response.data.map(updateMessages);
-      scrollToBottom(messageListRef);
+    } else if ("status" in response && response.status === "error") {
+      authContext.logoutAction();
     }
   };
 
+  // * Message list scroll to bottom handler
   useEffect(() => {
-    scrollToBottom(messageListRef);
-  }, [messages]);
+    if (hasNewMessage) {
+      scrollToBottom(messageListRef);
+      setHasNewMessage(false);
+    }
+  }, [hasNewMessage]);
 
   // TODO: update the component so that parse the converesation data as the component param instead of making additional data fetching
   useEffect(() => {
     setMessages({});
     if (!conversationId) {
-      navigate("/");
+      authContext.logoutAction();
       return;
     }
 
@@ -102,12 +129,12 @@ const Texting: React.FC = () => {
       );
       if ("data" in response) {
         setConversation(response.data);
-      } else {
-        navigate("/");
+      } else if ("status" in response && response.status === "error") {
+        authContext.logoutAction();
       }
     };
 
-    const joinRoomAndFetchMessages = () => {
+    const joinRoomAndFetchMessages = async () => {
       if (!socket) {
         // TODO: handle no socket (bad socket connection error) if needed?
         console.log("no socket");
@@ -115,26 +142,28 @@ const Texting: React.FC = () => {
       }
 
       socket.emit("joinRoom", { roomId: conversationId });
-      fetchMessageToDisplay({
+      await fetchMessagesHandler({
         conversationId,
         page: 1,
         size: 10,
       });
+      scrollToBottom(messageListRef);
     };
 
     fetchConversationData();
     joinRoomAndFetchMessages();
   }, [conversationId]);
 
+  // ? This might need to handle no socket exist or unauthorized socket
+  // * New message listener
   if (socket) {
     socket.on("newMessage", (receivedMessage: Message) => {
       setMessages((prevMessages) => ({
         ...prevMessages,
         [receivedMessage.id]: receivedMessage,
       }));
+      setHasNewMessage(true);
     });
-  } else {
-    console.log("no socket");
   }
 
   // TODO: Update send message error alert
@@ -161,6 +190,8 @@ const Texting: React.FC = () => {
           ...prevMessages,
           [newMessage.id]: newMessage,
         }));
+      } else if ("status" in response && response.status === "error") {
+        authContext.logoutAction();
       }
       setNewMessage("");
     } catch (error: any) {
@@ -170,14 +201,13 @@ const Texting: React.FC = () => {
   };
 
   // TODO: handle file upload
-  const handleUploadImage = (file: any) => {
+  const imageUploadHandler = (file: any) => {
     console.log("Uploaded file:", file);
 
     return false;
   };
 
-  const moreInformationButtonPressHandler = () => {
-    console.log("show modal");
+  const conversationDetailModalVisibilityUpdateHandler = () => {
     setShowConversationDetail(true);
   };
 
@@ -189,45 +219,51 @@ const Texting: React.FC = () => {
           className="setting-button"
           icon={<MoreOutlined />}
           type="text"
-          onClick={moreInformationButtonPressHandler}
+          onClick={conversationDetailModalVisibilityUpdateHandler}
         />
       </div>
       <Content className="message-container">
-        <List
-          className="message-list"
-          bordered
-          dataSource={Object.values(messages)}
-          renderItem={(message: Message) => (
-            <List.Item
-              className={
-                message.sendBy.id === authContext.userInformation.id
-                  ? "sent-message"
-                  : "received-message"
-              }
-            >
-              <List.Item.Meta
-                avatar={
-                  <div className="message-sender-information">
-                    <Avatar
-                      className="sender-photo"
-                      src="https://api.dicebear.com/7.x/miniavs/svg?seed=1"
-                      icon={<UserOutlined />}
-                      size={"large"}
-                    />
-                    <p className="sender-name">{`${message.sendBy.lastName} ${message.sendBy.firstName}`}</p>
-                  </div>
+        <div
+          className="message-list-container"
+          style={{ height: "100%", overflowY: "auto" }}
+          onScroll={handleScroll}
+        >
+          <List
+            className="message-list"
+            bordered
+            dataSource={Object.values(messages)}
+            renderItem={(message: Message) => (
+              <List.Item
+                className={
+                  message.sendBy.id === authContext.userInformation.id
+                    ? "sent-message"
+                    : "received-message"
                 }
-                title={`${message.message}`}
-                description={`${formatTimestamp(message.createdAt)}`}
-              />
-            </List.Item>
-          )}
-        />
-        <span ref={messageListRef}></span>
+              >
+                <List.Item.Meta
+                  avatar={
+                    <div className="message-sender-information">
+                      <Avatar
+                        className="sender-photo"
+                        src="https://api.dicebear.com/7.x/miniavs/svg?seed=1"
+                        icon={<UserOutlined />}
+                        size={"large"}
+                      />
+                      <p className="sender-name">{`${message.sendBy.lastName} ${message.sendBy.firstName}`}</p>
+                    </div>
+                  }
+                  title={`${message.message}`}
+                  description={`${formatTimestamp(message.createdAt)}`}
+                />
+              </List.Item>
+            )}
+          />
+          <span ref={messageListRef}></span>
+        </div>
       </Content>
       <div className="texting-tools">
         <Upload
-          beforeUpload={handleUploadImage}
+          beforeUpload={imageUploadHandler}
           showUploadList={false}
           style={{ marginLeft: "8px" }}
         >

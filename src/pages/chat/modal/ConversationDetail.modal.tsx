@@ -2,7 +2,6 @@ import "../../../assets/style/pages/chat/ConversationDetail.css";
 
 import { Button, Modal } from "antd";
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
 import { Conversation } from "../../../services/conversation/types/conversation.dto";
 import { ConversationDetailsModalProp } from "./types/ConversationDetailModalProp";
 

@@ -6,6 +6,7 @@
 }
 
 .message-container {
+  height: 100%;
   margin-top: 5px;
   flex: 1;
   overflow-y: auto;
