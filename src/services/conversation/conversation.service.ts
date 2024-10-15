@@ -40,3 +40,19 @@ export async function fetchConversationById(
     return error.response.data as ErrorResponse;
   }
 }
+
+export async function findConversationByName(
+  token: string,
+  conversationName: string
+) {
+  const API_URL = `${BASE_API_URL}?name=${conversationName}`;
+  try {
+    const response: AxiosResponse<ApiResponse<Conversation>> = await axios.get(
+      API_URL,
+      GetHeaderConfig(token)
+    );
+    return response.data;
+  } catch (error: any) {
+    return error.response.data as ErrorResponse;
+  }
+}
