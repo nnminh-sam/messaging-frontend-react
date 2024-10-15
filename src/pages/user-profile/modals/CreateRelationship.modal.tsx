@@ -117,6 +117,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
   };
 
   const renderUserActions: any = (user: UserInformationWithRelationship) => {
+    console.log("data:", user);
     if (user.relationship) {
       switch (user.relationship.status) {
         case "FRIENDS":

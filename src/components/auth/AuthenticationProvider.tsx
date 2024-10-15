@@ -79,6 +79,7 @@ const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
     setAccessToken("");
     setUserInformation(GetDefaultUserInformation());
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("profileActiveTab");
     navigate("/login");
   };
 

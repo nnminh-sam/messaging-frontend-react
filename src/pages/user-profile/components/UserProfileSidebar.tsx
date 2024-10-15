@@ -9,8 +9,6 @@ const UserProfileSidebar: React.FC<UserSidebarProp> = ({
   selectedItem,
   setSelectedItem,
 }) => {
-  const [sidebarItem, setSidebarItem] = useState<string>("profile");
-
   const sidebarData: UserSidebarData[] = [
     {
       key: "profile",
@@ -31,11 +29,9 @@ const UserProfileSidebar: React.FC<UserSidebarProp> = ({
   ];
 
   const sidebarItemClickedHandler = (event: any) => {
-    if (event.key === sidebarItem) {
+    if (event.key === selectedItem) {
       return;
     }
-
-    setSidebarItem(event.key);
     setSelectedItem(event.key);
   };
 
@@ -54,7 +50,7 @@ const UserProfileSidebar: React.FC<UserSidebarProp> = ({
         mode="inline"
         items={sidebarItemRenderer(sidebarData)}
         onClick={sidebarItemClickedHandler}
-        selectedKeys={[sidebarItem]}
+        selectedKeys={[selectedItem]}
       />
     </Sider>
   );

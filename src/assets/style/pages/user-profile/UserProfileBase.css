@@ -1,0 +1,15 @@
+.user-base-layout {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: white;
+}
+
+.user-base-content {
+  width: 100%;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  text-align: center;
+}
