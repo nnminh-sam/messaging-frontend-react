@@ -3,6 +3,8 @@ import { ApiResponse } from "../../types/api-response.dto";
 import { AuthResponseDto } from "./types/AuthResponse.dto";
 import { Registration } from "../../pages/auth/types/Registration.interface";
 import { GetHeaderConfig } from "../service.config";
+import { ChangePasswordDto } from "./types/ChangePassword.dto";
+import { ErrorResponse } from "../../types/error-response.dto";
 
 const env: ImportMetaEnv = import.meta.env;
 const BASE_AUTH_API_URL: string = `${env.VITE_BACKEND_URL}/${env.VITE_BACKEND_API_PREFIX}/${env.VITE_BACKEND_API_VERSION}/auth`;
@@ -47,5 +49,22 @@ export async function Register(
     return response.data;
   } catch (error: any) {
     throw new Error(error.response.data.message);
+  }
+}
+
+export async function changePassword(
+  token: string,
+  payload: ChangePasswordDto
+) {
+  try {
+    const response: AxiosResponse<ApiResponse<AuthResponseDto>> =
+      await axios.patch(
+        `${BASE_AUTH_API_URL}/change-password`,
+        payload,
+        GetHeaderConfig(token)
+      );
+    return response.data;
+  } catch (error: any) {
+    return error.response.data as ErrorResponse;
   }
 }

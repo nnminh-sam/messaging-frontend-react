@@ -13,7 +13,7 @@
   background-color: white;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  text-align: center; /* Ensure form elements are centered */
+  text-align: center;
 }
 
 .avatar-container {
@@ -33,4 +33,27 @@
 .user-information-form .ant-btn-primary {
   display: block;
   margin: 20px auto;
+}
+
+.user-information-form .update-button {
+  align-items: center;
+  justify-content: center;
+}
+
+.password-update-form {
+  margin-top: 40px;
+}
+
+.password-update-form .ant-form-item {
+  text-align: left;
+}
+
+.password-update-form .ant-btn-primary {
+  display: block;
+  margin: 20px auto;
+}
+
+.form-alert .alert-description {
+  text-align: left;
+  
 }

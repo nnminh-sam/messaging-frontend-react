@@ -1,15 +1,25 @@
+import "../../../assets/style/pages/user-profile/UserProfileLayout.css";
 import { Button, DatePicker, Form, Input, Layout, Select, Avatar } from "antd";
 import { Content } from "antd/es/layout/layout";
-import React, { useEffect } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
+import { changePassword } from "../../../services/auth/authentication.service";
 import { UserInformation } from "../../../services/user/types/user-information.dto";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import dayjs from "dayjs";
+import AlertComponent from "../../../components/alert/Alert.component";
+import AlertDescription from "../../../components/alert/AlertDescription.component";
+import { AlertType } from "../../../components/alert/types/AlertComponent.prop";
 
 const UserProfileLayout: React.FC = () => {
   const authContext: AuthenticationContextProp = useAuth();
   const initialUserData: UserInformation = authContext.userInformation;
   const [form] = Form.useForm();
+  const [passwordForm] = Form.useForm();
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+  const [alertDescriptions, setAlertDescriptions] = useState<ReactNode[]>([]);
+  const [alertType, setAlertType] = useState<AlertType>(AlertType.ERROR);
 
   useEffect(() => {
     form.setFieldsValue({
@@ -26,9 +36,48 @@ const UserProfileLayout: React.FC = () => {
     console.log(formattedValues);
   };
 
+  const handlePasswordFinish = async (values: any) => {
+    const response = await changePassword(authContext.accessToken, {
+      ...values,
+    });
+
+    if ("data" in response) {
+      setAlertMessage("Password updated successfully");
+      setAlertType(AlertType.SUCCESS);
+    } else if ("status" in response) {
+      setAlertMessage(response.message);
+      setAlertType(AlertType.ERROR);
+      console.log("details:", response?.details);
+      setAlertDescriptions(
+        response?.details.map((detail: any, index: number) => {
+          return (
+            <AlertDescription
+              message={detail.message}
+              fieldName={detail.property}
+            />
+          );
+        })
+      );
+    } else {
+      setAlertMessage("Unexpected error. Please log in again.");
+      setAlertType(AlertType.ERROR);
+      authContext.logoutAction();
+    }
+
+    setAlertVisible(true);
+  };
+
   return (
     <Layout className="user-profile-layout">
       <Content className="user-profile-content">
+        {alertVisible && (
+          <AlertComponent
+            type={alertType}
+            message={alertMessage}
+            descriptions={alertDescriptions}
+            name="form-alert"
+          />
+        )}
         <div className="avatar-container">
           <Avatar
             size={100}
@@ -127,6 +176,59 @@ const UserProfileLayout: React.FC = () => {
 
           <Button className="update-button" type="primary" htmlType="submit">
             Update
+          </Button>
+        </Form>
+
+        <Form
+          form={passwordForm}
+          className="password-update-form"
+          name="password-update"
+          labelCol={{ span: 8 }}
+          wrapperCol={{ span: 16 }}
+          onFinish={handlePasswordFinish}
+        >
+          <Form.Item
+            name="currentPassword"
+            label="Current Password"
+            rules={[
+              { required: true, message: "Please enter your current password" },
+            ]}
+          >
+            <Input.Password placeholder="Enter your current password" />
+          </Form.Item>
+
+          <Form.Item
+            name="newPassword"
+            label="New Password"
+            rules={[
+              { required: true, message: "Please enter your new password" },
+            ]}
+          >
+            <Input.Password placeholder="Enter your new password" />
+          </Form.Item>
+
+          <Form.Item
+            name="confirmNewPassword"
+            label="Confirm New Password"
+            rules={[
+              { required: true, message: "Please confirm your new password" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("newPassword") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(
+                    new Error("The two passwords do not match!")
+                  );
+                },
+              }),
+            ]}
+          >
+            <Input.Password placeholder="Confirm your new password" />
+          </Form.Item>
+
+          <Button className="update-button" type="primary" htmlType="submit">
+            Update Password
           </Button>
         </Form>
       </Content>
