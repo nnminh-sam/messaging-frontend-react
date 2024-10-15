@@ -1,0 +1,36 @@
+.user-profile-layout {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: white;
+}
+
+.user-profile-content {
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  text-align: center; /* Ensure form elements are centered */
+}
+
+.avatar-container {
+  margin-bottom: 20px;
+}
+
+.user-information-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-information-form .ant-form-item {
+  text-align: left;
+}
+
+.user-information-form .ant-btn-primary {
+  display: block;
+  margin: 20px auto;
+}

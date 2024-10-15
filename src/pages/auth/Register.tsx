@@ -6,13 +6,10 @@ import {
 } from "./types/Registration.interface";
 import { FormBase } from "../../components/forms/FormBase";
 import { Gender } from "./types/Gender.enum";
-import { Register } from "../../apis/auth/authentication.service";
-import { useNavigate } from "react-router-dom";
 import { AuthenticationContextProp } from "../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../components/auth/AuthenticationProvider";
 
 export const RegistrationForm: React.FC = () => {
-  const navigate = useNavigate();
   const authenticationContext: AuthenticationContextProp = useAuth();
 
   const formSubmitHandler = async (form: Registration) => {
