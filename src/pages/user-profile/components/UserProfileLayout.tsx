@@ -4,6 +4,7 @@ import { Content } from "antd/es/layout/layout";
 import React, { ReactNode, useEffect, useState } from "react";
 import { changePassword } from "../../../services/auth/authentication.service";
 import { UserInformation } from "../../../services/user/types/user-information.dto";
+import { updateUserInformation } from "../../../services/user/user.service";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import dayjs from "dayjs";
@@ -28,26 +29,21 @@ const UserProfileLayout: React.FC = () => {
     });
   }, [form, initialUserData]);
 
-  const handleFinish = (values: any) => {
+  const userInformationUpdateHandler = async (values: any) => {
     const formattedValues = {
       ...values,
       dateOfBirth: values.dateOfBirth.toDate(),
     };
-    console.log(formattedValues);
-  };
-
-  const handlePasswordFinish = async (values: any) => {
-    const response = await changePassword(authContext.accessToken, {
-      ...values,
-    });
-
+    const response = await updateUserInformation(
+      authContext.accessToken,
+      formattedValues
+    );
     if ("data" in response) {
-      setAlertMessage("Password updated successfully");
+      setAlertMessage("Update user information success!");
       setAlertType(AlertType.SUCCESS);
     } else if ("status" in response) {
-      setAlertMessage(response.message);
+      setAlertMessage(`${response.message}`);
       setAlertType(AlertType.ERROR);
-      console.log("details:", response?.details);
       setAlertDescriptions(
         response?.details.map((detail: any, index: number) => {
           return (
@@ -59,9 +55,36 @@ const UserProfileLayout: React.FC = () => {
         })
       );
     } else {
-      setAlertMessage("Unexpected error. Please log in again.");
+      setAlertMessage("Unexpected error");
       setAlertType(AlertType.ERROR);
-      authContext.logoutAction();
+    }
+    setAlertVisible(true);
+  };
+
+  const changePasswordHandler = async (values: any) => {
+    const response = await changePassword(authContext.accessToken, {
+      ...values,
+    });
+
+    if ("data" in response) {
+      setAlertMessage("Password updated successfully");
+      setAlertType(AlertType.SUCCESS);
+    } else if ("status" in response) {
+      setAlertMessage(response.message);
+      setAlertType(AlertType.ERROR);
+      setAlertDescriptions(
+        response?.details.map((detail: any, index: number) => {
+          return (
+            <AlertDescription
+              message={detail.message}
+              fieldName={detail.property}
+            />
+          );
+        })
+      );
+    } else {
+      setAlertMessage("Unexpected error");
+      setAlertType(AlertType.ERROR);
     }
 
     setAlertVisible(true);
@@ -76,6 +99,9 @@ const UserProfileLayout: React.FC = () => {
             message={alertMessage}
             descriptions={alertDescriptions}
             name="form-alert"
+            onClose={() => {
+              setAlertVisible(false);
+            }}
           />
         )}
         <div className="avatar-container">
@@ -94,7 +120,7 @@ const UserProfileLayout: React.FC = () => {
             ...authContext.userInformation,
             dateOfBirth: dayjs(initialUserData.dateOfBirth),
           }}
-          onFinish={handleFinish}
+          onFinish={userInformationUpdateHandler}
         >
           <Form.Item
             name="username"
@@ -185,7 +211,7 @@ const UserProfileLayout: React.FC = () => {
           name="password-update"
           labelCol={{ span: 8 }}
           wrapperCol={{ span: 16 }}
-          onFinish={handlePasswordFinish}
+          onFinish={changePasswordHandler}
         >
           <Form.Item
             name="currentPassword"
@@ -228,7 +254,7 @@ const UserProfileLayout: React.FC = () => {
           </Form.Item>
 
           <Button className="update-button" type="primary" htmlType="submit">
-            Update Password
+            Change Password
           </Button>
         </Form>
       </Content>

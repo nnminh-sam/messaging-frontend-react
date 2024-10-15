@@ -5,6 +5,7 @@ import { GetHeaderConfig } from "../service.config";
 import { ListApiResponse } from "../../types/list-api-response.dto";
 import { UserInformationWithRelationship } from "./types/user-information-with-relationship.dto";
 import { ErrorResponse } from "../../types/error-response.dto";
+import { UpdateUserDto } from "./types/update-user.dto";
 
 const env: ImportMetaEnv = import.meta.env;
 const BASE_API_URL: string = `${env.VITE_BACKEND_URL}/${env.VITE_BACKEND_API_PREFIX}/${env.VITE_BACKEND_API_VERSION}/users`;
@@ -56,6 +57,21 @@ export async function findUserConversationMembershipByConversationId(
     const response: AxiosResponse<
       ListApiResponse<UserInformationWithRelationship>
     > = await axios.get(API_URL, GetHeaderConfig(token));
+    return response.data;
+  } catch (error: any) {
+    return error.response.data as ErrorResponse;
+  }
+}
+
+export async function updateUserInformation(
+  token: string,
+  payload: UpdateUserDto
+) {
+  const API_URL = `${BASE_API_URL}`;
+  try {
+    const response: AxiosResponse<
+      ListApiResponse<UserInformationWithRelationship>
+    > = await axios.patch(API_URL, payload, GetHeaderConfig(token));
     return response.data;
   } catch (error: any) {
     return error.response.data as ErrorResponse;

@@ -14,4 +14,5 @@ export interface AlertComponentProp {
   showIcon?: boolean;
   closeable?: boolean;
   descriptions?: ReactNode[];
+  onClose: () => void;
 }

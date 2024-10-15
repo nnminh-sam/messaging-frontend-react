@@ -9,6 +9,7 @@ const AlertComponent: React.FC<AlertComponentProp> = ({
   descriptions,
   closeable,
   showIcon,
+  onClose,
 }) => {
   return (
     <Alert
@@ -18,6 +19,7 @@ const AlertComponent: React.FC<AlertComponentProp> = ({
       closable={closeable || true}
       message={message}
       description={descriptions}
+      onClose={onClose}
     ></Alert>
   );
 };
