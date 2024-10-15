@@ -27,3 +27,26 @@
   display: flex;
   gap: 10px;
 }
+
+.friend-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.friend-list .friend-list-item {
+  text-align: left;
+}
+
+.friend-list .friend-list-item-tool-box {
+  display: flex;
+  gap: 5px;
+}
+
+@media (max-width: 900px) {
+  .user-connection-content {
+    max-width: 100%;
+  }
+}
