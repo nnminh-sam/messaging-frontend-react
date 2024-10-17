@@ -43,7 +43,10 @@ const UserConnectionLayout: React.FC = () => {
   const fetchUserFriendsHandler: any = async () => {
     const response = await GetUserFriends(authContext.accessToken);
     if ("data" in response) {
-      setFriendRelationships(response.data);
+      const userFriends = response.data.filter((relationship: any) => {
+        return relationship.status === "FRIENDS" ? relationship : null;
+      });
+      setFriendRelationships(userFriends);
       return;
     } else if ("status" in response && response.status === "error") {
       setAlertMessage(`${response.message}`);
@@ -228,7 +231,10 @@ const UserConnectionLayout: React.FC = () => {
             accessToken={authContext.accessToken}
             logoutAction={authContext.logoutAction}
             visible={createRelationshipModalVisible}
-            onClose={() => setCreateRelationshipModalVisible(false)}
+            onClose={() => {
+              setCreateRelationshipModalVisible(false);
+              fetchUserFriendsHandler();
+            }}
             userA={authContext.userInformation.id}
           />
         </div>
