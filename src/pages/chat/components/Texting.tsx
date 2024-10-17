@@ -18,6 +18,11 @@ import { ErrorResponse } from "../../../types/error-response.dto";
 import { fetchConversationById } from "../../../services/conversation/conversation.service";
 import { Conversation } from "../../../services/conversation/types/conversation.dto";
 import ConversationDetails from "../modal/ConversationDetail.modal";
+import { Membership } from "../../../services/membership/types/membership.dto";
+
+export interface TextingProps {
+  membership: Membership;
+}
 
 const { Content } = Layout;
 
@@ -42,7 +47,9 @@ function scrollToBottom(messageListRef: any) {
   }
 }
 
-const Texting: React.FC = () => {
+const Texting: React.FC<TextingProps> = ({ membership }) => {
+  const conversation: Conversation = membership.conversation;
+  const { conversationId } = useParams<{ conversationId: string }>();
   const authContext: AuthenticationContextProp = useAuth();
   const socket: Socket = io(SOCKET_SERVER_URL, {
     extraHeaders: {
@@ -50,16 +57,6 @@ const Texting: React.FC = () => {
     },
   });
   const messageListRef = React.useRef<HTMLDivElement | null>(null);
-  const { conversationId } = useParams<{ conversationId: string }>();
-  const [conversation, setConversation] = useState<any>({
-    id: "",
-    name: "",
-    description: "",
-    createdAt: new Date(),
-    createdBy: "",
-    host: {},
-    updatedAt: new Date(),
-  });
   const [messages, setMessages] = useState<Record<string, Message>>({});
   const [newMessage, setNewMessage] = useState<string>("");
   const [showConversationDetail, setShowConversationDetail] =
@@ -130,18 +127,6 @@ const Texting: React.FC = () => {
       return;
     }
 
-    const fetchConversationData = async () => {
-      const response = await fetchConversationById(
-        authContext.accessToken,
-        conversationId
-      );
-      if ("data" in response) {
-        setConversation(response.data);
-      } else if ("status" in response && response.status === "error") {
-        authContext.logoutAction();
-      }
-    };
-
     const joinRoomAndFetchMessages = async () => {
       if (!socket) {
         // TODO: handle no socket (bad socket connection error) if needed?
@@ -158,7 +143,7 @@ const Texting: React.FC = () => {
       scrollToBottom(messageListRef);
     };
 
-    fetchConversationData();
+    // fetchConversationData();
     joinRoomAndFetchMessages();
   }, [conversationId]);
 
@@ -222,7 +207,16 @@ const Texting: React.FC = () => {
   return (
     <Layout className="texting-component">
       <div className="conversation-header">
-        <h3>{conversation.type === "DIRECT" ? "true" : "false"}</h3>
+        {membership &&
+          (conversation.type !== "DIRECT" ? (
+            <h3>{conversation.name}</h3>
+          ) : (
+            <h3>
+              {membership.partner
+                ? `${membership.partner.lastName} ${membership.partner.firstName}`
+                : "Unknown"}
+            </h3>
+          ))}
         <Button
           className="setting-button"
           icon={<MoreOutlined />}
@@ -291,13 +285,16 @@ const Texting: React.FC = () => {
           Send
         </Button>
       </div>
-      <ConversationDetails
-        conversation={conversation}
-        visible={showConversationDetail}
-        onClose={() => {
-          setShowConversationDetail(false);
-        }}
-      />
+      {conversation && (
+        <ConversationDetails
+          conversation={conversation}
+          visible={showConversationDetail}
+          onClose={() => {
+            setShowConversationDetail(false);
+          }}
+          directConversationName={`${membership.partner?.lastName} ${membership.partner?.firstName}`}
+        />
+      )}
     </Layout>
   );
 };

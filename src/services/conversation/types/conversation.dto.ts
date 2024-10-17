@@ -5,7 +5,7 @@ export type Conversation = {
   name: string;
   description: string;
   createdBy: string;
-  host: UserInformation;
+  host: UserInformation | string;
   createdAt: Date;
   updatedAt: Date;
   type: string;

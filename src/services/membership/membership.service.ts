@@ -47,3 +47,16 @@ export async function fetchConversationParticipants(
     return error.response.data as ErrorResponse;
   }
 }
+
+export async function findMemberhsipById(token: string, membershipId: string) {
+  const API_URL = `${BASE_API_URL}/${membershipId}`;
+  try {
+    const response: AxiosResponse<Membership> = await axios.get(
+      API_URL,
+      GetHeaderConfig(token)
+    );
+    return response.data;
+  } catch (error: any) {
+    return error.response.data as ErrorResponse;
+  }
+}

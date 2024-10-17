@@ -27,7 +27,6 @@ const { Search } = Input;
 export interface SidebarMenuProp {
   activeConversation: string;
   setActiveConversation: (conversationId: string) => void;
-  userConversationMembership?: Membership; // TODO: remove optional
   setActiveConversationMembership: (membership: Membership) => void;
 }
 
@@ -92,10 +91,14 @@ export const SidebarMenu: React.FC<SidebarMenuProp> = ({
         return membership.conversation.id === event.key ? membership : null;
       }
     );
-    if (!membership) authContext.logoutAction();
+    if (!membership) {
+      authContext.logoutAction();
+      return;
+    }
 
-    setActiveConversation(event.key);
     localStorage.setItem("activeConversation", event.key);
+    localStorage.setItem("lastMembershipId", membership.id);
+    setActiveConversation(event.key);
     setActiveConversationMembership(membership as Membership);
     navigate(`/${event.key}`, { replace: true });
   };

@@ -24,6 +24,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
   visible,
   onClose,
   conversation,
+  directConversationName,
 }) => {
   const authContext: AuthenticationContextProp = useAuth();
   const [conversationMembers, setConversationMembers] = useState<any[]>([]);
@@ -111,7 +112,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
         ) : (
           <div className="group-conversation-options">
             {membership.role !== "HOST" &&
-            conversation.host.id === authContext.userInformation.id ? (
+            conversation.host === authContext.userInformation.id ? (
               <>
                 <Button
                   className="block-user-button"
@@ -155,7 +156,6 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
       sortBy: "firstName",
       orderBy: "asc",
     });
-    console.log("conversation:", conversation);
   }, [visible]);
 
   return (
@@ -171,30 +171,37 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
     >
       <div className="conversation-container">
         <div className="container-header">
-          <h2>{conversation.name}</h2>
-          <p>{conversation.description}</p>
+          <h2>
+            {conversation.type !== "DIRECT"
+              ? conversation.name
+              : `Direct conversation with ${directConversationName}`}
+          </h2>
         </div>
         <div className="container-body">
+          <h3>Participants</h3>
           <List
             dataSource={conversationMembers}
             renderItem={conversationMembersDataRender}
           />
           <div className="pagination-section">
-            {Array.from({ length: totalPage }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                type={currentPage === page ? "primary" : "default"}
-                onClick={() => PageChangeHandler(page)}
-              >
-                {page}
-              </Button>
-            ))}
+            {conversation.type === "DIRECT" ? (
+              <></>
+            ) : (
+              Array.from({ length: totalPage }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  type={currentPage === page ? "primary" : "default"}
+                  onClick={() => PageChangeHandler(page)}
+                >
+                  {page}
+                </Button>
+              ))
+            )}
           </div>
         </div>
         <div className="container-footer">
-          {conversation.host.id !== authContext.userInformation.id ? (
-            <></>
-          ) : (
+          {conversation.host === authContext.userInformation.id &&
+          conversation.type !== "DIRECT" ? (
             <>
               <Button
                 type="primary"
@@ -217,6 +224,8 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
                 }}
               />
             </>
+          ) : (
+            <></>
           )}
         </div>
       </div>

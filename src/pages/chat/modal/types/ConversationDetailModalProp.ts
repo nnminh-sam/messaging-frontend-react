@@ -4,4 +4,5 @@ export interface ConversationDetailsModalProp {
   visible: boolean;
   onClose: () => void;
   conversation: Conversation;
+  directConversationName?: string;
 }
