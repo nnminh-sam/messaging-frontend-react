@@ -50,3 +50,8 @@
     max-width: 100%;
   }
 }
+
+.user-connection-content .relationship-status-filter {
+  margin-bottom: 10px;
+  margin-top: 0;
+}

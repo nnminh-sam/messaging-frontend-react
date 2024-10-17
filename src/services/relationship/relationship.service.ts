@@ -5,6 +5,7 @@ import { GetHeaderConfig } from "../service.config";
 import { Relationship } from "./types/relationship.dto";
 import { ApiResponse } from "../../types/api-response.dto";
 import { ErrorResponse } from "../../types/error-response.dto";
+import { BlockUserDto } from "./types/block-user.dto";
 
 const env: ImportMetaEnv = import.meta.env;
 const BASE_API_URL: string = `${env.VITE_BACKEND_URL}/${env.VITE_BACKEND_API_PREFIX}/${env.VITE_BACKEND_API_VERSION}/relationships`;
@@ -72,6 +73,17 @@ export async function deleteRelationship(
   try {
     const response: AxiosResponse<ApiResponse<Relationship>> =
       await axios.delete(API_URL, GetHeaderConfig(token));
+    return response.data;
+  } catch (error: any) {
+    return error.response.data as ErrorResponse;
+  }
+}
+
+export async function blockUser(token: string, payload: BlockUserDto) {
+  const API_URL = `${BASE_API_URL}/block`;
+  try {
+    const response: AxiosResponse<ApiResponse<Relationship>> =
+      await axios.patch(API_URL, payload, GetHeaderConfig(token));
     return response.data;
   } catch (error: any) {
     return error.response.data as ErrorResponse;

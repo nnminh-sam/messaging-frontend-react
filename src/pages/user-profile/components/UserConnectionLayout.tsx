@@ -1,6 +1,16 @@
 import "../../../assets/style/pages/user-profile/UserProfileBase.css";
 import "../../../assets/style/pages/user-profile/UserConnectionLayout.css";
-import { Avatar, Button, Card, GetProps, Input, Layout, List } from "antd";
+import {
+  Avatar,
+  Button,
+  Card,
+  GetProps,
+  Input,
+  Layout,
+  List,
+  Radio,
+  RadioChangeEvent,
+} from "antd";
 import { Content, Header } from "antd/es/layout/layout";
 import React, { ReactNode, useEffect, useState } from "react";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
@@ -8,6 +18,7 @@ import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import Meta from "antd/es/card/Meta";
 import { UserInformation } from "../../../services/user/types/user-information.dto";
 import {
+  blockUser,
   deleteRelationship,
   GetUserFriends,
 } from "../../../services/relationship/relationship.service";
@@ -23,6 +34,7 @@ import { useNavigate } from "react-router-dom";
 import AlertComponent from "../../../components/alert/Alert.component";
 import { AlertType } from "../../../components/alert/types/AlertComponent.prop";
 import AlertDescription from "../../../components/alert/AlertDescription.component";
+import { Relationship } from "../../../services/relationship/types/relationship.dto";
 
 type SearchProps = GetProps<typeof Input.Search>;
 
@@ -39,13 +51,48 @@ const UserConnectionLayout: React.FC = () => {
   const [friendRelationships, setFriendRelationships] = useState<any[]>([]);
   const [createRelationshipModalVisible, setCreateRelationshipModalVisible] =
     useState<boolean>(false);
+  const [relationshipStatusFilter, setRelationshipStatusFilter] =
+    useState<string>("FRIEND");
 
-  const fetchUserFriendsHandler: any = async () => {
+  const fetchUserFriendsHandler: any = async (statusFilter: string) => {
     const response = await GetUserFriends(authContext.accessToken);
     if ("data" in response) {
       const userFriends = response.data.filter((relationship: any) => {
-        return relationship.status === "FRIENDS" ? relationship : null;
+        if (statusFilter === "REQUESTED") {
+          if (
+            (relationship.status === "REQUEST_USER_A" &&
+              relationship.userA.id === user.id) ||
+            (relationship.status === "REQUEST_USER_B" &&
+              relationship.userB.id === user.id)
+          ) {
+            return relationship;
+          }
+        } else if (statusFilter === "INVITE") {
+          if (
+            (relationship.status === "REQUEST_USER_A" &&
+              relationship.userB.id === user.id) ||
+            (relationship.status === "REQUEST_USER_B" &&
+              relationship.userA.id === user.id)
+          ) {
+            return relationship;
+          }
+        } else if (statusFilter === "BLOCKED") {
+          if (
+            (relationship.status === "BLOCKED_USER_A" &&
+              relationship.userA.id === user.id) ||
+            (relationship.status === "BLOCKED_USER_B" &&
+              relationship.userB.id === user.id)
+          ) {
+            return relationship;
+          }
+        } else if (statusFilter === "FRIEND") {
+          if (relationship.status === "FRIENDS") {
+            return relationship;
+          }
+        }
+        return null;
       });
+      console.log("🚀 ~ userFriends ~ userFriends:", userFriends);
       setFriendRelationships(userFriends);
       return;
     } else if ("status" in response && response.status === "error") {
@@ -120,15 +167,45 @@ const UserConnectionLayout: React.FC = () => {
       );
       setAlertType(AlertType.ERROR);
       setAlertVisible(true);
-    } else {
-      await fetchUserFriendsHandler();
     }
   };
 
-  const blockUserButtonPressedHandler: any = async () => {};
+  const blockUserButtonPressedHandler: any = async (
+    relationship: Relationship
+  ) => {
+    const targetUser =
+      relationship.userA.id === user.id
+        ? relationship.userB.id
+        : relationship.userA.id;
+    const response = await blockUser(authContext.accessToken, {
+      blockedBy: authContext.userInformation.id,
+      targetUser: targetUser,
+    });
+    if ("data" in response) {
+      setAlertMessage("User blocked successfully");
+      setAlertType(AlertType.SUCCESS);
+      setAlertVisible(true);
+    } else if ("status" in response && response.status === "error") {
+      setAlertMessage(`${response.message}`);
+      if (response.details) {
+        setAlertDescriptions(
+          response?.details.map((detail: any, index: number) => {
+            return (
+              <AlertDescription
+                message={detail.message}
+                fieldName={detail.property}
+              />
+            );
+          })
+        );
+      }
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
+    }
+  };
 
   useEffect(() => {
-    fetchUserFriendsHandler();
+    fetchUserFriendsHandler(relationshipStatusFilter);
   }, []);
 
   const renderFriendFromFriendRelationships: any = (
@@ -168,6 +245,7 @@ const UserConnectionLayout: React.FC = () => {
             danger
             onClick={() => {
               unfriendButtonPressedHandler(friendRelationship.id);
+              fetchUserFriendsHandler(relationshipStatusFilter);
             }}
           ></Button>
           <Button
@@ -175,7 +253,10 @@ const UserConnectionLayout: React.FC = () => {
             icon={<StopOutlined />}
             variant="solid"
             color="danger"
-            onClick={blockUserButtonPressedHandler}
+            onClick={() => {
+              blockUserButtonPressedHandler(friendRelationship);
+              fetchUserFriendsHandler(relationshipStatusFilter);
+            }}
           ></Button>
         </div>
       </List.Item>
@@ -184,6 +265,11 @@ const UserConnectionLayout: React.FC = () => {
 
   const onSearch: SearchProps["onSearch"] = (value, _e, info) =>
     console.log(info?.source, value);
+
+  const relationshipStatusFilterUpdateHandler: any = (e: RadioChangeEvent) => {
+    setRelationshipStatusFilter(e.target.value);
+    fetchUserFriendsHandler(e.target.value);
+  };
 
   return (
     <Layout className="user-base-layout user-connection-layout">
@@ -212,13 +298,19 @@ const UserConnectionLayout: React.FC = () => {
         </Card>
       </Header>
       <Content className="user-base-content user-connection-content">
-        <h2>Friends</h2>
+        <h2>Connections</h2>
+        <Radio.Group
+          className="relationship-status-filter"
+          onChange={relationshipStatusFilterUpdateHandler}
+          value={relationshipStatusFilter}
+        >
+          <Radio value={"FRIEND"}>Friend</Radio>
+          <Radio value={"REQUESTED"}>Requested</Radio>
+          <Radio value={"INVITE"}>Invite</Radio>
+          <Radio value={"BLOCKED"}>Blocked</Radio>
+        </Radio.Group>
         <div className="tool-box">
-          <Search
-            placeholder="Search my friend"
-            onSearch={onSearch}
-            enterButton
-          />
+          <Search placeholder="Search" onSearch={onSearch} enterButton />
           <Button
             icon={<UserAddOutlined />}
             onClick={() => {
@@ -233,11 +325,12 @@ const UserConnectionLayout: React.FC = () => {
             visible={createRelationshipModalVisible}
             onClose={() => {
               setCreateRelationshipModalVisible(false);
-              fetchUserFriendsHandler();
+              fetchUserFriendsHandler(relationshipStatusFilter);
             }}
             userA={authContext.userInformation.id}
           />
         </div>
+
         <List
           className="friend-list"
           dataSource={friendRelationships}
