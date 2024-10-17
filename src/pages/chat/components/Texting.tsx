@@ -51,13 +51,13 @@ const Texting: React.FC = () => {
   });
   const messageListRef = React.useRef<HTMLDivElement | null>(null);
   const { conversationId } = useParams<{ conversationId: string }>();
-  const [conversation, setConversation] = useState<Conversation>({
+  const [conversation, setConversation] = useState<any>({
     id: "",
     name: "",
     description: "",
     createdAt: new Date(),
     createdBy: "",
-    host: "",
+    host: {},
     updatedAt: new Date(),
   });
   const [messages, setMessages] = useState<Record<string, Message>>({});
@@ -222,7 +222,7 @@ const Texting: React.FC = () => {
   return (
     <Layout className="texting-component">
       <div className="conversation-header">
-        <h3>{conversation.name}</h3>
+        <h3>{conversation.type === "DIRECT" ? "true" : "false"}</h3>
         <Button
           className="setting-button"
           icon={<MoreOutlined />}

@@ -177,13 +177,15 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
             ]
           );
         case "AWAY":
-          <Button
-            color="primary"
-            variant="outlined"
-            onClick={() => handleCreateRelationship(user.id)}
-          >
-            Add Friend
-          </Button>;
+          return (
+            <Button
+              color="primary"
+              variant="outlined"
+              onClick={() => handleCreateRelationship(user.id)}
+            >
+              Add Friend
+            </Button>
+          );
         default:
           return (
             <Button color="danger" variant="outlined">

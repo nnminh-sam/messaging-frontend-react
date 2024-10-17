@@ -16,8 +16,9 @@ import { Membership } from "../../../services/membership/types/membership.dto";
 import { GetParticipatedConversation } from "../../../services/membership/membership.service";
 import { CreateConversationModal } from "../modal/CreateConversation.modal";
 import { useNavigate } from "react-router-dom";
+import { ErrorResponse } from "../../../types/error-response.dto";
 
-type SideBarItem = Required<MenuProps>["items"][number];
+type SideBarDataType = Required<MenuProps>["items"][number];
 
 type SearchProps = GetProps<typeof Input.Search>;
 
@@ -26,78 +27,76 @@ const { Search } = Input;
 export interface SidebarMenuProp {
   activeConversation: string;
   setActiveConversation: (conversationId: string) => void;
+  userConversationMembership?: Membership; // TODO: remove optional
+  setActiveConversationMembership: (membership: Membership) => void;
 }
 
 export const SidebarMenu: React.FC<SidebarMenuProp> = ({
   activeConversation,
   setActiveConversation,
+  setActiveConversationMembership,
 }) => {
   const navigate = useNavigate();
   const authContext: AuthenticationContextProp = useAuth();
-  const [sidebarData, setSidebarData] = useState<SideBarItem[]>([]);
-  const [
-    isCreateConversationModalVisible,
-    setIsCreateConversationModalVisible,
-  ] = useState<boolean>(false);
+  const [sidebarData, setSidebarData] = useState<SideBarDataType[]>([]);
+  const [participatedMembership, setParticipatedMembership] = useState<
+    Membership[]
+  >([]);
+  const [createConversationModalVisible, setCreateConversationModalVisible] =
+    useState<boolean>(false);
 
   const fetchParticipatedConversation: any = async () => {
-    const userMembershipWithConversations: ListApiResponse<Membership> =
+    const response: ListApiResponse<Membership> | ErrorResponse =
       await GetParticipatedConversation(authContext.accessToken);
-    const SideBarItems: SideBarItem[] =
-      userMembershipWithConversations.data.map((membership) => {
-        const conversation: Conversation = membership.conversation;
-        if (!conversation || !conversation.name) {
-          authContext.logoutAction();
-        }
 
-        let conversationLabel: string = conversation.name;
-        let privateConversationId: string | null = null;
-        const match = conversation.name.match(/\[(.*?)\]/);
-        if (match && match[1]) {
-          privateConversationId = match[1];
-        }
-        if (privateConversationId && membership.partner) {
-          conversationLabel = `${membership.partner.lastName} ${membership.partner.firstName}`;
-        }
+    if ("data" in response) {
+      setParticipatedMembership(response.data);
+      setSidebarData(
+        response.data.map((membership: Membership): any => {
+          const conversation: Conversation = membership.conversation;
+          if (conversation.type !== "DIRECT") {
+            return {
+              key: conversation.id,
+              icon: <CommentOutlined />,
+              label: conversation.name,
+            };
+          }
 
-        return {
-          key: conversation.id,
-          icon: <CommentOutlined />,
-          label: conversationLabel,
-        };
-      });
-    setSidebarData(SideBarItems);
+          const partnerFullName: string = `${membership.partner?.lastName} ${membership.partner?.firstName}`;
+          return {
+            key: conversation.id,
+            icon: <CommentOutlined />,
+            label: partnerFullName,
+          };
+        })
+      );
+      return;
+    }
+    authContext.logoutAction();
   };
 
   useEffect(() => {
-    const execDefaultProcess: any = async () => {
-      await fetchParticipatedConversation();
-    };
-
-    execDefaultProcess();
+    fetchParticipatedConversation();
   }, []);
-
-  const handleCreateNewItemButtonClicked: any = async (event: any) => {
-    event.preventDefault();
-    setIsCreateConversationModalVisible(true);
-  };
-
-  const handleProfileButtonClicked: any = (event: any) => {
-    event.preventDefault();
-    navigate("/profile");
-  };
 
   // TODO: update the conversation content to show the searching conversations
   const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
     console.log("value:", value);
   };
 
-  const handleSidebarItemSelected: MenuProps["onClick"] = (event: any) => {
-    if (event.key === activeConversation) {
-      return;
-    }
+  const handleConversationSelected: MenuProps["onClick"] = (event: any) => {
+    if (event.key === activeConversation) return;
+
+    const membership: Membership | undefined = participatedMembership.find(
+      (membership: Membership) => {
+        return membership.conversation.id === event.key ? membership : null;
+      }
+    );
+    if (!membership) authContext.logoutAction();
+
     setActiveConversation(event.key);
     localStorage.setItem("activeConversation", event.key);
+    setActiveConversationMembership(membership as Membership);
     navigate(`/${event.key}`, { replace: true });
   };
 
@@ -115,7 +114,7 @@ export const SidebarMenu: React.FC<SidebarMenuProp> = ({
             className="profile-button"
             icon={<UserOutlined />}
             shape="circle"
-            onClick={handleProfileButtonClicked}
+            onClick={() => navigate("/profile")}
             variant="outlined"
           />
           <p className="full-name">
@@ -135,7 +134,7 @@ export const SidebarMenu: React.FC<SidebarMenuProp> = ({
             <Button
               className="create-new-item"
               icon={<FormOutlined />}
-              onClick={handleCreateNewItemButtonClicked}
+              onClick={() => setCreateConversationModalVisible(true)}
               variant="outlined"
             />
             <Search
@@ -152,12 +151,15 @@ export const SidebarMenu: React.FC<SidebarMenuProp> = ({
         mode="inline"
         theme="dark"
         items={sidebarData}
-        onClick={handleSidebarItemSelected}
+        onClick={handleConversationSelected}
         selectedKeys={[activeConversation]}
       />
       <CreateConversationModal
-        visible={isCreateConversationModalVisible}
-        onClose={() => setIsCreateConversationModalVisible(false)}
+        visible={createConversationModalVisible}
+        onClose={() => {
+          setCreateConversationModalVisible(false);
+          fetchParticipatedConversation();
+        }}
         onSuccess={fetchParticipatedConversation}
       />
     </Sider>

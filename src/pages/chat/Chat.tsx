@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 export const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeConversation, setActiveConversation] = useState<string>("");
+  const [activeMembership, setActiveMembership] = useState<any>({});
 
   useEffect(() => {
     const activeConversationFromLocalStorage: string | null =
@@ -19,11 +20,16 @@ export const ChatPage: React.FC = () => {
     navigate(`/${activeConversationFromLocalStorage}`, { replace: true });
   }, []);
 
+  useEffect(() => {
+    console.log("🚀 ~ activeMembership:", activeMembership);
+  }, [activeMembership]);
+
   return (
     <Layout className="chat-container" hasSider>
       <SidebarMenu
         activeConversation={activeConversation}
         setActiveConversation={setActiveConversation}
+        setActiveConversationMembership={setActiveMembership}
       />
       <div className="texting-section">
         {activeConversation ? (

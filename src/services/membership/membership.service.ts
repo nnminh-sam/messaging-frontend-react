@@ -16,7 +16,7 @@ export async function GetParticipatedConversation(token: string) {
       await axios.get(API_URL, GetHeaderConfig(token));
     return response.data;
   } catch (error: any) {
-    throw new Error(error.response.data.message);
+    return error.response.data as ErrorResponse;
   }
 }
 
