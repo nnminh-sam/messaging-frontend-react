@@ -1,14 +1,16 @@
 import "../../../assets/style/pages/user-profile/UserProfileBase.css";
 import "../../../assets/style/pages/user-profile/UserConnectionLayout.css";
-
 import { Avatar, Button, Card, GetProps, Input, Layout, List } from "antd";
 import { Content, Header } from "antd/es/layout/layout";
-import React, { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import Meta from "antd/es/card/Meta";
 import { UserInformation } from "../../../services/user/types/user-information.dto";
-import { GetUserFriends } from "../../../services/relationship/relationship.service";
+import {
+  deleteRelationship,
+  GetUserFriends,
+} from "../../../services/relationship/relationship.service";
 import {
   DeleteOutlined,
   MessageOutlined,
@@ -16,14 +18,24 @@ import {
   UserAddOutlined,
 } from "@ant-design/icons";
 import { CreateRelationshipModal } from "../modals/CreateRelationship.modal";
+import { findConversationByName } from "../../../services/conversation/conversation.service";
+import { useNavigate } from "react-router-dom";
+import AlertComponent from "../../../components/alert/Alert.component";
+import { AlertType } from "../../../components/alert/types/AlertComponent.prop";
+import AlertDescription from "../../../components/alert/AlertDescription.component";
 
 type SearchProps = GetProps<typeof Input.Search>;
 
 const { Search } = Input;
 
 const UserConnectionLayout: React.FC = () => {
+  const navigate = useNavigate();
   const authContext: AuthenticationContextProp = useAuth();
   const user: UserInformation = authContext.userInformation;
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>("");
+  const [alertDescriptions, setAlertDescriptions] = useState<ReactNode[]>([]);
+  const [alertType, setAlertType] = useState<AlertType>(AlertType.ERROR);
   const [friendRelationships, setFriendRelationships] = useState<any[]>([]);
   const [createRelationshipModalVisible, setCreateRelationshipModalVisible] =
     useState<boolean>(false);
@@ -32,18 +44,83 @@ const UserConnectionLayout: React.FC = () => {
     const response = await GetUserFriends(authContext.accessToken);
     if ("data" in response) {
       setFriendRelationships(response.data);
+      return;
     } else if ("status" in response && response.status === "error") {
-      // TODO: add alert
+      setAlertMessage(`${response.message}`);
+      setAlertDescriptions(
+        response?.details.map((detail: any, index: number) => {
+          return (
+            <AlertDescription
+              message={detail.message}
+              fieldName={detail.property}
+            />
+          );
+        })
+      );
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
     } else {
-      // TODO: add alert
+      setAlertMessage("Unexpected error");
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
     }
   };
 
   const goToConversationPressHandler: any = async (relationshipId: string) => {
-    console.log(`Go to private conversation of ${relationshipId}`);
+    const response = await findConversationByName(
+      authContext.accessToken,
+      relationshipId
+    );
+    if ("data" in response) {
+      navigate(`/${response.data.id}`);
+      return;
+    } else if ("status" in response && response.status === "error") {
+      setAlertMessage(`${response.message}`);
+      if (response.details) {
+        setAlertDescriptions(
+          response?.details.map((detail: any, index: number) => {
+            return (
+              <AlertDescription
+                message={detail.message}
+                fieldName={detail.property}
+              />
+            );
+          })
+        );
+      }
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
+    } else {
+      setAlertMessage("Unexpected error");
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
+    }
   };
 
-  const unfriendButtonPressedHandler: any = async () => {};
+  const unfriendButtonPressedHandler: any = async (relationshipId: string) => {
+    const response = await deleteRelationship(
+      authContext.accessToken,
+      relationshipId
+    );
+    console.log("data:", response);
+    if ("status" in response && response.status === "error") {
+      setAlertMessage(`${response.message}`);
+      setAlertDescriptions(
+        response?.details.map((detail: any, index: number) => {
+          return (
+            <AlertDescription
+              message={detail.message}
+              fieldName={detail.property}
+            />
+          );
+        })
+      );
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
+    } else {
+      await fetchUserFriendsHandler();
+    }
+  };
 
   const blockUserButtonPressedHandler: any = async () => {};
 
@@ -86,7 +163,9 @@ const UserConnectionLayout: React.FC = () => {
             className="unfriend-button"
             icon={<DeleteOutlined />}
             danger
-            onClick={unfriendButtonPressedHandler}
+            onClick={() => {
+              unfriendButtonPressedHandler(friendRelationship.id);
+            }}
           ></Button>
           <Button
             className="block-user-button"
@@ -105,6 +184,17 @@ const UserConnectionLayout: React.FC = () => {
 
   return (
     <Layout className="user-base-layout user-connection-layout">
+      {alertVisible && (
+        <AlertComponent
+          type={alertType}
+          message={alertMessage}
+          descriptions={alertDescriptions}
+          name="form-alert"
+          onClose={() => {
+            setAlertVisible(false);
+          }}
+        />
+      )}
       <Header className="user-connection-header">
         <Card className="user-contact-card" hoverable>
           <Meta

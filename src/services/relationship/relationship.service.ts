@@ -63,3 +63,17 @@ export async function DeclineRelationship(
     throw new Error(error.response.data.message);
   }
 }
+
+export async function deleteRelationship(
+  token: string,
+  relationshipId: string
+) {
+  const API_URL = `${BASE_API_URL}/${relationshipId}`;
+  try {
+    const response: AxiosResponse<ApiResponse<Relationship>> =
+      await axios.delete(API_URL, GetHeaderConfig(token));
+    return response.data;
+  } catch (error: any) {
+    return error.response.data as ErrorResponse;
+  }
+}
