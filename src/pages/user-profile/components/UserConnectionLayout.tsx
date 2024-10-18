@@ -22,6 +22,7 @@ import {
   blockUser,
   deleteRelationship,
   GetUserFriends,
+  unblockUser,
 } from "../../../services/relationship/relationship.service";
 import {
   DeleteOutlined,
@@ -255,6 +256,27 @@ const UserConnectionLayout: React.FC = () => {
     }
   };
 
+  const unblockUserButtonClickedHandler: any = async (
+    relationshipId: string
+  ) => {
+    const response = await unblockUser(authContext.accessToken, relationshipId);
+    if ("status" in response && response.status === "error") {
+      setAlertMessage(`${response.message}`);
+      setAlertDescriptions(
+        response?.details.map((detail: any, index: number) => {
+          return (
+            <AlertDescription
+              message={detail.message}
+              fieldName={detail.property}
+            />
+          );
+        })
+      );
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
+    }
+  };
+
   useEffect(() => {
     fetchUserFriendsHandler(relationshipStatusFilter);
   }, []);
@@ -361,9 +383,7 @@ const UserConnectionLayout: React.FC = () => {
               color="danger"
               variant="outlined"
               onClick={async () => {
-                await acceptInvitationButtonClickedHandler(
-                  friendRelationship.id
-                );
+                await unblockUserButtonClickedHandler(friendRelationship.id);
                 await fetchUserFriendsHandler(relationshipStatusFilter);
               }}
             >

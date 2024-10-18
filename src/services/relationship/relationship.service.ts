@@ -41,10 +41,8 @@ export async function CreateNewRelationship(
 export async function AcceptFriendship(token: string, relationshipId: string) {
   const API_URL = `${BASE_API_URL}/accept/${relationshipId}`;
   try {
-    const response: AxiosResponse<ApiResponse<Relationship>> = await axios.get(
-      API_URL,
-      GetHeaderConfig(token)
-    );
+    const response: AxiosResponse<ApiResponse<Relationship>> =
+      await axios.patch(API_URL, {}, GetHeaderConfig(token));
     return response.data;
   } catch (error: any) {
     return error.response.data as ErrorResponse;
@@ -84,6 +82,17 @@ export async function blockUser(token: string, payload: BlockUserDto) {
   try {
     const response: AxiosResponse<ApiResponse<Relationship>> =
       await axios.patch(API_URL, payload, GetHeaderConfig(token));
+    return response.data;
+  } catch (error: any) {
+    return error.response.data as ErrorResponse;
+  }
+}
+
+export async function unblockUser(token: string, relationshipId: string) {
+  const API_URL = `${BASE_API_URL}/unblock/${relationshipId}`;
+  try {
+    const response: AxiosResponse<ApiResponse<Relationship>> =
+      await axios.patch(API_URL, {}, GetHeaderConfig(token));
     return response.data;
   } catch (error: any) {
     return error.response.data as ErrorResponse;
