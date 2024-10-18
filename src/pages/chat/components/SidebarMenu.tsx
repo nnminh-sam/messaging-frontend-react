@@ -52,6 +52,7 @@ export const SidebarMenu: React.FC<SidebarMenuProp> = ({
       setParticipatedMembership(response.data);
       setSidebarData(
         response.data.map((membership: Membership): any => {
+          console.log("membership:", membership);
           const conversation: Conversation = membership.conversation;
           if (conversation.type !== "DIRECT") {
             return {
