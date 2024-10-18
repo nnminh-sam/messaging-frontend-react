@@ -18,6 +18,7 @@ import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import Meta from "antd/es/card/Meta";
 import { UserInformation } from "../../../services/user/types/user-information.dto";
 import {
+  AcceptFriendship,
   blockUser,
   deleteRelationship,
   GetUserFriends,
@@ -92,7 +93,6 @@ const UserConnectionLayout: React.FC = () => {
         }
         return null;
       });
-      console.log("🚀 ~ userFriends ~ userFriends:", userFriends);
       setFriendRelationships(userFriends);
       return;
     } else if ("status" in response && response.status === "error") {
@@ -116,7 +116,9 @@ const UserConnectionLayout: React.FC = () => {
     }
   };
 
-  const goToConversationPressHandler: any = async (relationshipId: string) => {
+  const goToConversationButtonClickedHandler: any = async (
+    relationshipId: string
+  ) => {
     const response = await findConversationByName(
       authContext.accessToken,
       relationshipId
@@ -147,7 +149,7 @@ const UserConnectionLayout: React.FC = () => {
     }
   };
 
-  const unfriendButtonPressedHandler: any = async (relationshipId: string) => {
+  const unfriendButtonClickedHandler: any = async (relationshipId: string) => {
     const response = await deleteRelationship(
       authContext.accessToken,
       relationshipId
@@ -170,7 +172,7 @@ const UserConnectionLayout: React.FC = () => {
     }
   };
 
-  const blockUserButtonPressedHandler: any = async (
+  const blockUserButtonClickedHandler: any = async (
     relationship: Relationship
   ) => {
     const targetUser =
@@ -204,6 +206,55 @@ const UserConnectionLayout: React.FC = () => {
     }
   };
 
+  const cancelRequestButtonClickedHandler: any = async (
+    relationshipId: string
+  ) => {
+    const response = await deleteRelationship(
+      authContext.accessToken,
+      relationshipId
+    );
+    console.log("data:", response);
+    if ("status" in response && response.status === "error") {
+      setAlertMessage(`${response.message}`);
+      setAlertDescriptions(
+        response?.details.map((detail: any, index: number) => {
+          return (
+            <AlertDescription
+              message={detail.message}
+              fieldName={detail.property}
+            />
+          );
+        })
+      );
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
+    }
+  };
+
+  const acceptInvitationButtonClickedHandler: any = async (
+    relationshipId: string
+  ) => {
+    const response = await AcceptFriendship(
+      authContext.accessToken,
+      relationshipId
+    );
+    if ("status" in response && response.status === "error") {
+      setAlertMessage(`${response.message}`);
+      setAlertDescriptions(
+        response?.details.map((detail: any, index: number) => {
+          return (
+            <AlertDescription
+              message={detail.message}
+              fieldName={detail.property}
+            />
+          );
+        })
+      );
+      setAlertType(AlertType.ERROR);
+      setAlertVisible(true);
+    }
+  };
+
   useEffect(() => {
     fetchUserFriendsHandler(relationshipStatusFilter);
   }, []);
@@ -229,36 +280,97 @@ const UserConnectionLayout: React.FC = () => {
           title={`${friend.firstName} ${friend.lastName}`}
           description={`${friend.email}`}
         />
-        <div className="friend-list-item-tool-box">
-          <Button
-            className="go-to-conversation-button"
-            icon={<MessageOutlined />}
-            onClick={() => {
-              goToConversationPressHandler(friendRelationship.id);
-            }}
-            color="primary"
-            variant="outlined"
-          ></Button>
-          <Button
-            className="unfriend-button"
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => {
-              unfriendButtonPressedHandler(friendRelationship.id);
-              fetchUserFriendsHandler(relationshipStatusFilter);
-            }}
-          ></Button>
-          <Button
-            className="block-user-button"
-            icon={<StopOutlined />}
-            variant="solid"
-            color="danger"
-            onClick={() => {
-              blockUserButtonPressedHandler(friendRelationship);
-              fetchUserFriendsHandler(relationshipStatusFilter);
-            }}
-          ></Button>
-        </div>
+        {relationshipStatusFilter === "FRIEND" && (
+          <div className="friend-list-item-tool-box friend-relationship">
+            <Button
+              className="go-to-conversation-button"
+              icon={<MessageOutlined />}
+              onClick={() => {
+                goToConversationButtonClickedHandler(friendRelationship.id);
+              }}
+              color="primary"
+              variant="outlined"
+            ></Button>
+            <Button
+              className="unfriend-button"
+              icon={<DeleteOutlined />}
+              danger
+              onClick={async () => {
+                await unfriendButtonClickedHandler(friendRelationship.id);
+                await fetchUserFriendsHandler(relationshipStatusFilter);
+              }}
+            ></Button>
+            <Button
+              className="block-user-button"
+              icon={<StopOutlined />}
+              variant="solid"
+              color="danger"
+              onClick={async () => {
+                await blockUserButtonClickedHandler(friendRelationship);
+                await fetchUserFriendsHandler(relationshipStatusFilter);
+              }}
+            ></Button>
+          </div>
+        )}
+        {relationshipStatusFilter === "REQUESTED" && (
+          <div className="friend-list-item-tool-box requested-relationship">
+            <Button variant="filled" color="default" disabled>
+              Pending
+            </Button>
+            <Button
+              onClick={async () => {
+                await cancelRequestButtonClickedHandler(friendRelationship.id);
+                await fetchUserFriendsHandler(relationshipStatusFilter);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+        {relationshipStatusFilter === "INVITE" && (
+          <div className="friend-list-item-tool-box invite-relationship">
+            <Button
+              name="accept-button"
+              color="primary"
+              variant="solid"
+              onClick={async () => {
+                await acceptInvitationButtonClickedHandler(
+                  friendRelationship.id
+                );
+                await fetchUserFriendsHandler(relationshipStatusFilter);
+              }}
+            >
+              Accept
+            </Button>
+            <Button
+              name="reject-button"
+              color="danger"
+              variant="outlined"
+              onClick={async () => {
+                await cancelRequestButtonClickedHandler(friendRelationship.id);
+                await fetchUserFriendsHandler(relationshipStatusFilter);
+              }}
+            >
+              Reject
+            </Button>
+          </div>
+        )}
+        {relationshipStatusFilter === "BLOCKED" && (
+          <div className="friend-list-item-tool-box blocked-relationship">
+            <Button
+              color="danger"
+              variant="outlined"
+              onClick={async () => {
+                await acceptInvitationButtonClickedHandler(
+                  friendRelationship.id
+                );
+                await fetchUserFriendsHandler(relationshipStatusFilter);
+              }}
+            >
+              Unblock
+            </Button>
+          </div>
+        )}
       </List.Item>
     );
   };

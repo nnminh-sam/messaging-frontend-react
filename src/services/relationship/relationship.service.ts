@@ -47,7 +47,7 @@ export async function AcceptFriendship(token: string, relationshipId: string) {
     );
     return response.data;
   } catch (error: any) {
-    throw new Error(error.response.data.message);
+    return error.response.data as ErrorResponse;
   }
 }
 

@@ -54,14 +54,13 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
   const handleAcceptRequestRelationship: any = async (
     relationshipId: string
   ) => {
-    try {
-      const response: ApiResponse<Relationship> = await AcceptFriendship(
-        authContext.accessToken,
-        relationshipId
-      );
-      console.log("response:", response);
+    const response = await AcceptFriendship(
+      authContext.accessToken,
+      relationshipId
+    );
+    if ("data" in response) {
       handleSearch(currentPage);
-    } catch (error) {
+    } else {
       authContext.loginAction();
     }
   };
