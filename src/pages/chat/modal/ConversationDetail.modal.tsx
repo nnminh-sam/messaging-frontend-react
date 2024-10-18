@@ -17,6 +17,11 @@ import { fetchConversationParticipants } from "../../../services/membership/memb
 import { UserInformation } from "../../../services/user/types/user-information.dto";
 import { FetchConversationParticipant } from "../../../services/membership/types/fetch-conversation-participant.dto";
 import AddUserToConversationModal from "./AddUserToConversation.modal";
+import MembershipApi from "../../../services/membership-new/membership.api";
+import {
+  MembershipRole,
+  MembershipStatus,
+} from "../../../services/membership-new/membership.type";
 
 const USER_LIST_SIZE = 10;
 
@@ -56,9 +61,18 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
     }
   };
 
-  const setUserAsHostHandler = async () => {};
+  const setUserAsHostHandler = async (membershipId: string) => {
+    const response = await MembershipApi.updateMembershipStatus(membershipId, {
+      role: MembershipRole.HOST,
+      status: MembershipStatus.PARTICIPATING,
+    });
+    if (!response) return;
+  };
 
-  const removeUserHandler = async () => {};
+  const removeUserHandler = async (membershipId: string) => {
+    const response = await MembershipApi.deleteMembership(membershipId);
+    if (!response) return;
+  };
 
   const banUserHandler = async () => {};
 
@@ -97,7 +111,12 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
             <span className="user-full-name">
               {`${user.lastName} ${user.firstName}`}
               {membership.role === "HOST" ? (
-                <Button type="text" className="conversation-host-indicator">
+                <Button
+                  color="default"
+                  variant="text"
+                  className="conversation-host-indicator"
+                  disabled
+                >
                   Host
                 </Button>
               ) : (
@@ -107,39 +126,50 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
           }
           description={user.email}
         />
-        {conversation.type === "DIRECT" ? (
-          <></>
-        ) : (
-          <div className="group-conversation-options">
-            {membership.role !== "HOST" &&
-            conversation.host === authContext.userInformation.id ? (
-              <>
-                <Button
-                  className="block-user-button"
-                  icon={<AndroidOutlined />}
-                  onClick={setUserAsHostHandler}
-                >
-                  Set as Host
-                </Button>
-                <Button
-                  className="remove-user-button"
-                  icon={<DeleteOutlined />}
-                  danger
-                  onClick={removeUserHandler}
-                ></Button>
-                <Button
-                  className="block-user-button"
-                  icon={<StopOutlined />}
-                  variant="solid"
-                  color="danger"
-                  onClick={banUserHandler}
-                ></Button>
-              </>
-            ) : (
-              <></>
-            )}
-          </div>
-        )}
+        {conversation.type !== "DIRECT" &&
+          membership.role !== "HOST" &&
+          conversation.host === authContext.userInformation.id && (
+            <div className="group-conversation-options">
+              <Button
+                className="block-user-button"
+                icon={<AndroidOutlined />}
+                onClick={async () => {
+                  await setUserAsHostHandler(membership.id);
+                  await fetchConversationParticipantHandler({
+                    conversationId: conversation.id,
+                    page: currentPage,
+                    size: USER_LIST_SIZE,
+                    sortBy: "firstName",
+                    orderBy: "asc",
+                  });
+                }}
+              >
+                Set as Host
+              </Button>
+              <Button
+                className="remove-user-button"
+                icon={<DeleteOutlined />}
+                danger
+                onClick={async () => {
+                  await removeUserHandler(membership.id);
+                  await fetchConversationParticipantHandler({
+                    conversationId: conversation.id,
+                    page: currentPage,
+                    size: USER_LIST_SIZE,
+                    sortBy: "firstName",
+                    orderBy: "asc",
+                  });
+                }}
+              ></Button>
+              <Button
+                className="block-user-button"
+                icon={<StopOutlined />}
+                variant="solid"
+                color="danger"
+                onClick={banUserHandler}
+              ></Button>
+            </div>
+          )}
       </List.Item>
     );
   };
