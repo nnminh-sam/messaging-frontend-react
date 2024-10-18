@@ -26,8 +26,6 @@ export interface TextingProps {
 
 const { Content } = Layout;
 
-const SOCKET_SERVER_URL = "http://localhost:3001";
-
 function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
 
@@ -51,11 +49,7 @@ const Texting: React.FC<TextingProps> = ({ membership }) => {
   const conversation: Conversation = membership.conversation;
   const { conversationId } = useParams<{ conversationId: string }>();
   const authContext: AuthenticationContextProp = useAuth();
-  const socket: Socket = io(SOCKET_SERVER_URL, {
-    extraHeaders: {
-      Authorization: `${authContext.accessToken}`,
-    },
-  });
+  const socket: Socket | undefined = authContext.socket;
   const messageListRef = React.useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<Record<string, Message>>({});
   const [newMessage, setNewMessage] = useState<string>("");
@@ -157,6 +151,8 @@ const Texting: React.FC<TextingProps> = ({ membership }) => {
       }));
       setHasNewMessage(true);
     });
+  } else {
+    console.log("No socket connection");
   }
 
   // TODO: Update send message error alert

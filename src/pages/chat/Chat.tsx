@@ -19,6 +19,7 @@ export const ChatPage: React.FC = () => {
       authContext.accessToken,
       membershipId
     );
+    console.log(response);
     if ("data" in response) {
       return response.data as Membership;
     }
@@ -55,6 +56,7 @@ export const ChatPage: React.FC = () => {
         {activeConversation ? (
           <Texting membership={activeMembership} />
         ) : (
+          // <></>
           // TODO: Add a better UI for this
           <p>Select a conversation to start chatting</p>
         )}

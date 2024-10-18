@@ -1,3 +1,4 @@
+import { Socket } from "socket.io-client";
 import {
   GetDefaultUserInformation,
   UserInformation,
@@ -15,6 +16,8 @@ export interface AuthenticationContextProp {
   logoutAction: any;
 
   getUserInformation: any;
+
+  socket: Socket | undefined;
 }
 
 export function GetDefaultAuthenticationContext(): AuthenticationContextProp {
@@ -25,5 +28,6 @@ export function GetDefaultAuthenticationContext(): AuthenticationContextProp {
     loginAction: null,
     logoutAction: null,
     getUserInformation: null,
+    socket: undefined,
   };
 }

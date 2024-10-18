@@ -17,6 +17,9 @@ import {
 import { GetDefaultUserInformation } from "../../services/user/types/user-information.dto";
 import { GetUserInformation } from "../../services/user/user.service";
 import { Registration } from "../../pages/auth/types/Registration.interface";
+import { io, Socket } from "socket.io-client";
+
+const envData = (import.meta as any).env;
 
 const AuthContext: Context<AuthenticationContextProp> = createContext(
   GetDefaultAuthenticationContext()
@@ -32,6 +35,7 @@ const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
   const [userInformation, setUserInformation] = useState(
     GetDefaultUserInformation()
   );
+  const [socket, setSocket] = useState<Socket | undefined>(undefined);
 
   const getUserInformation = async (token: string) => {
     try {
@@ -43,8 +47,16 @@ const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    if (accessToken && !userInformation.fullName) {
+    if (accessToken) {
       getUserInformation(accessToken);
+      setSocket(
+        io(envData.VITE_BACKEND_URL, {
+          extraHeaders: {
+            Authorization: `${accessToken}`,
+          },
+        })
+      );
+      console.log("auth provider socket:", socket);
     }
   }, [accessToken]);
 
@@ -92,6 +104,7 @@ const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
         loginAction,
         logoutAction,
         getUserInformation,
+        socket,
       }}
     >
       {children}
