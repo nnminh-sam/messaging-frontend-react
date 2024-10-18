@@ -19,7 +19,6 @@ export const ChatPage: React.FC = () => {
       authContext.accessToken,
       membershipId
     );
-    console.log(response);
     if ("data" in response) {
       return response.data as Membership;
     }

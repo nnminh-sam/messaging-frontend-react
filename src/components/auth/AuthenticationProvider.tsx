@@ -56,7 +56,6 @@ const AuthenticationProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         })
       );
-      console.log("auth provider socket:", socket);
     }
   }, [accessToken]);
 
