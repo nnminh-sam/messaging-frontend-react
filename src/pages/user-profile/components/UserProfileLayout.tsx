@@ -1,5 +1,14 @@
 import "../../../assets/style/pages/user-profile/UserProfileLayout.css";
-import { Button, DatePicker, Form, Input, Layout, Select, Avatar } from "antd";
+import {
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  Layout,
+  Select,
+  Avatar,
+  notification,
+} from "antd";
 import { Content } from "antd/es/layout/layout";
 import React, { ReactNode, useEffect, useState } from "react";
 import { changePassword } from "../../../services/auth/authentication.service";
@@ -18,9 +27,6 @@ const UserProfileLayout: React.FC = () => {
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
-  const [alertMessage, setAlertMessage] = useState<string>("");
-  const [alertDescriptions, setAlertDescriptions] = useState<ReactNode[]>([]);
-  const [alertType, setAlertType] = useState<AlertType>(AlertType.ERROR);
 
   useEffect(() => {
     form.setFieldsValue({
@@ -34,57 +40,44 @@ const UserProfileLayout: React.FC = () => {
       ...values,
       dateOfBirth: values.dateOfBirth.toDate(),
     };
+    delete formattedValues["email"];
     const response = await updateUserInformation(
       authContext.accessToken,
       formattedValues
     );
     if ("data" in response) {
-      setAlertMessage("Update user information success!");
-      setAlertType(AlertType.SUCCESS);
+      notification.success({
+        message: "Update user information success!",
+      });
     } else if ("status" in response) {
-      setAlertMessage(`${response.message}`);
-      setAlertType(AlertType.ERROR);
-      setAlertDescriptions(
-        response?.details.map((detail: any, index: number) => {
-          return (
-            <AlertDescription
-              message={detail.message}
-              fieldName={detail.property}
-            />
-          );
-        })
-      );
+      notification.error({
+        message: `${response.message}`,
+      });
     } else {
-      setAlertMessage("Unexpected error");
-      setAlertType(AlertType.ERROR);
+      notification.error({
+        message: "Unexpected error",
+      });
     }
-    setAlertVisible(true);
   };
 
   const changePasswordHandler = async (values: any) => {
+    delete values["confirmNewPassword"];
     const response = await changePassword(authContext.accessToken, {
       ...values,
     });
 
     if ("data" in response) {
-      setAlertMessage("Password updated successfully");
-      setAlertType(AlertType.SUCCESS);
+      notification.success({
+        message: "Change password success!",
+      });
     } else if ("status" in response) {
-      setAlertMessage(response.message);
-      setAlertType(AlertType.ERROR);
-      setAlertDescriptions(
-        response?.details.map((detail: any, index: number) => {
-          return (
-            <AlertDescription
-              message={detail.message}
-              fieldName={detail.property}
-            />
-          );
-        })
-      );
+      notification.error({
+        message: `${response.message}`,
+      });
     } else {
-      setAlertMessage("Unexpected error");
-      setAlertType(AlertType.ERROR);
+      notification.error({
+        message: "Unexpected error",
+      });
     }
 
     setAlertVisible(true);
@@ -93,17 +86,6 @@ const UserProfileLayout: React.FC = () => {
   return (
     <Layout className="user-profile-layout">
       <Content className="user-profile-content">
-        {alertVisible && (
-          <AlertComponent
-            type={alertType}
-            message={alertMessage}
-            descriptions={alertDescriptions}
-            name="form-alert"
-            onClose={() => {
-              setAlertVisible(false);
-            }}
-          />
-        )}
         <div className="avatar-container">
           <Avatar
             size={100}
@@ -125,7 +107,7 @@ const UserProfileLayout: React.FC = () => {
           <Form.Item
             name="username"
             label="Username"
-            rules={[{ required: true, message: "Please enter your username" }]}
+            rules={[{ message: "Please enter your username" }]}
           >
             <Input placeholder="Enter your username" />
           </Form.Item>
@@ -135,21 +117,18 @@ const UserProfileLayout: React.FC = () => {
             label="Email"
             rules={[
               {
-                required: true,
                 type: "email",
                 message: "Please enter a valid email",
               },
             ]}
           >
-            <Input placeholder="Enter your email" />
+            <Input placeholder="Enter your email" disabled />
           </Form.Item>
 
           <Form.Item
             name="firstName"
             label="First Name"
-            rules={[
-              { required: true, message: "Please enter your first name" },
-            ]}
+            rules={[{ message: "Please enter your first name" }]}
           >
             <Input placeholder="Enter your first name" />
           </Form.Item>
@@ -157,7 +136,7 @@ const UserProfileLayout: React.FC = () => {
           <Form.Item
             name="lastName"
             label="Last Name"
-            rules={[{ required: true, message: "Please enter your last name" }]}
+            rules={[{ message: "Please enter your last name" }]}
           >
             <Input placeholder="Enter your last name" />
           </Form.Item>
@@ -165,7 +144,7 @@ const UserProfileLayout: React.FC = () => {
           <Form.Item
             name="gender"
             label="Gender"
-            rules={[{ required: true, message: "Please select your gender" }]}
+            rules={[{ message: "Please select your gender" }]}
           >
             <Select
               defaultValue={authContext.userInformation.gender}
@@ -193,9 +172,7 @@ const UserProfileLayout: React.FC = () => {
           <Form.Item
             name="phone"
             label="Phone"
-            rules={[
-              { required: true, message: "Please enter your phone number" },
-            ]}
+            rules={[{ message: "Please enter your phone number" }]}
           >
             <Input placeholder="Enter your phone number" />
           </Form.Item>
@@ -216,9 +193,7 @@ const UserProfileLayout: React.FC = () => {
           <Form.Item
             name="currentPassword"
             label="Current Password"
-            rules={[
-              { required: true, message: "Please enter your current password" },
-            ]}
+            rules={[{ message: "Please enter your current password" }]}
           >
             <Input.Password placeholder="Enter your current password" />
           </Form.Item>
@@ -226,9 +201,7 @@ const UserProfileLayout: React.FC = () => {
           <Form.Item
             name="newPassword"
             label="New Password"
-            rules={[
-              { required: true, message: "Please enter your new password" },
-            ]}
+            rules={[{ message: "Please enter your new password" }]}
           >
             <Input.Password placeholder="Enter your new password" />
           </Form.Item>
@@ -237,7 +210,7 @@ const UserProfileLayout: React.FC = () => {
             name="confirmNewPassword"
             label="Confirm New Password"
             rules={[
-              { required: true, message: "Please confirm your new password" },
+              { message: "Please confirm your new password" },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue("newPassword") === value) {
