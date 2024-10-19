@@ -63,9 +63,6 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
       conversation: membership.conversation.id,
     });
     if (!response) return;
-    notification.success({
-      message: "Host changed",
-    });
   };
 
   const removeUserHandler = async (membershipId: string) => {
@@ -140,12 +137,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
                 icon={<AndroidOutlined />}
                 onClick={async () => {
                   await setUserAsHostHandler(membership);
-                  await fetchConversationParticipantHandler(conversation.id, {
-                    page: currentPage,
-                    size: USER_LIST_SIZE,
-                    sortBy: "firstName",
-                    orderBy: "asc",
-                  });
+                  modalCloseHandler();
                 }}
               >
                 Set as Host
