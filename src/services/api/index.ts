@@ -34,7 +34,7 @@ Api.interceptors.response.use(
     const message = err?.response?.data?.message;
     if (status === 401 || status === 403) {
       localStorage.removeItem("accessToken");
-      window.location.href = "/register";
+      window.location.href = "/sign-in";
     }
     return Promise.reject(new Error(message));
   }

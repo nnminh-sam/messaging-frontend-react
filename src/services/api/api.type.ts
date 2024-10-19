@@ -5,3 +5,10 @@ export enum HTTPMethod {
   PATCH = "PATCH",
   DELETE = "DELETE",
 }
+
+export interface PaginationDto {
+  page: number;
+  size: number;
+  sortBy?: string;
+  orderBy?: string;
+}

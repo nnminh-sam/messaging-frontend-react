@@ -5,13 +5,12 @@ import { CreateConversation } from "../../../services/conversation/conversation.
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import { CreateConversationDto } from "../../../services/conversation/types/create-conversation.dto";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
-import { JoinConversation } from "../../../services/membership/membership.service";
+import MembershipApi from "../../../services/membership/membership.api";
+import { MembershipRole } from "../../../services/membership/membership.type";
 
-export const CreateConversationModal: React.FC<CreateConversationModalProp & { onSuccess: () => void }> = ({
-  visible,
-  onClose,
-  onSuccess,
-}) => {
+export const CreateConversationModal: React.FC<
+  CreateConversationModalProp & { onSuccess: () => void }
+> = ({ visible, onClose, onSuccess }) => {
   const authContext: AuthenticationContextProp = useAuth();
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [createConversationPayload, setCreateConversationPayload] =
@@ -64,19 +63,13 @@ export const CreateConversationModal: React.FC<CreateConversationModalProp & { o
 
     if ("data" in createConversationResponse) {
       const createdConversation = createConversationResponse.data;
-      const createMembershipResponse = await JoinConversation(
-        authContext.accessToken,
-        {
-          user: authContext.userInformation.id,
-          conversation: createdConversation.id,
-          role: "HOST",
-        }
-      );
-      if (
-        "status" in createMembershipResponse &&
-        createMembershipResponse.status === "error"
-      ) {
-        const errorDetails = createMembershipResponse.details.map(
+      const response = await MembershipApi.createMembership({
+        user: authContext.userInformation.id,
+        conversation: createdConversation.id,
+        role: MembershipRole.HOST,
+      });
+      if (!response) {
+        const errorDetails = response.details.map(
           (detail: any) => `${detail.property}: ${detail.message}`
         );
         setErrorMessages(errorDetails);

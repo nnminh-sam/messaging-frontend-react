@@ -1,18 +1,12 @@
-import { Avatar, Button, List, Modal } from "antd";
-import {
-  AndroidOutlined,
-  DeleteOutlined,
-  LeftOutlined,
-  RightOutlined,
-  StopOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { Avatar, Button, List, Modal, notification } from "antd";
+import { UserOutlined } from "@ant-design/icons";
 import { Conversation } from "../../../services/conversation/types/conversation.dto";
 import React, { ReactNode, useEffect, useState } from "react";
 import { findUserConversationMembershipByConversationId } from "../../../services/user/user.service";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
-import { JoinConversation } from "../../../services/membership/membership.service";
+import MembershipApi from "../../../services/membership/membership.api";
+import { MembershipRole } from "../../../services/membership/membership.type";
 
 export interface AddUserToConversationModalProps {
   visible: boolean;
@@ -59,17 +53,17 @@ const AddUserToConversationModal: React.FC<AddUserToConversationModalProps> = ({
   };
 
   const addUserToConversationButtonPressedHandler = async (userId: string) => {
-    const response = await JoinConversation(authContext.accessToken, {
+    const response = await MembershipApi.createMembership({
       user: userId,
       conversation: conversation.id,
-      role: "MEMBER",
+      role: MembershipRole.MEMBER,
     });
-    if ("data" in response) {
-      alert("Added user to conversation");
-      await fetchUserConversationMembershipByConversationId(currentPage);
-    } else {
-      authContext.logoutAction();
-    }
+
+    if (!response) authContext.logoutAction();
+    notification.success({
+      message: "User added to conversation",
+    });
+    await fetchUserConversationMembershipByConversationId(currentPage);
   };
 
   const PageChangeHandler = (page: number) => {

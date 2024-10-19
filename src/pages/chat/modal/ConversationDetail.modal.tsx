@@ -1,11 +1,9 @@
 import "../../../assets/style/pages/chat/ConversationDetail.css";
 
-import { Avatar, Button, GetProps, Input, List, Modal } from "antd";
+import { Avatar, Button, List, Modal, notification } from "antd";
 import {
   AndroidOutlined,
   DeleteOutlined,
-  LeftOutlined,
-  RightOutlined,
   StopOutlined,
   UserOutlined,
 } from "@ant-design/icons";
@@ -13,15 +11,11 @@ import React, { ReactNode, useEffect, useState } from "react";
 import { ConversationDetailsModalProp } from "./types/ConversationDetailModalProp";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
-import { fetchConversationParticipants } from "../../../services/membership/membership.service";
 import { UserInformation } from "../../../services/user/types/user-information.dto";
-import { FetchConversationParticipant } from "../../../services/membership/types/fetch-conversation-participant.dto";
 import AddUserToConversationModal from "./AddUserToConversation.modal";
-import MembershipApi from "../../../services/membership-new/membership.api";
-import {
-  MembershipRole,
-  MembershipStatus,
-} from "../../../services/membership-new/membership.type";
+import { PaginationDto } from "../../../services/api/api.type";
+import MembershipApi from "../../../services/membership/membership.api";
+import { Membership } from "../../../services/membership/membership.type";
 
 const USER_LIST_SIZE = 10;
 
@@ -47,26 +41,30 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
   };
 
   const fetchConversationParticipantHandler = async (
-    payload: FetchConversationParticipant
+    conversationId: string,
+    paginationDto: PaginationDto
   ) => {
-    const response = await fetchConversationParticipants(
-      authContext.accessToken,
-      payload
+    const response = await MembershipApi.getConversationMembers(
+      conversationId,
+      paginationDto
     );
-    if ("data" in response) {
-      setConversationMembers(response.data);
-      setTotalPage(response.metadata.pagination.totalPage);
-    } else if ("status" in response && response.status === "error") {
+    if (!response) {
       authContext.logoutAction();
     }
+
+    setConversationMembers(response.data);
+    setTotalPage(response.metadata.pagination.totalPage);
   };
 
-  const setUserAsHostHandler = async (membershipId: string) => {
-    const response = await MembershipApi.updateMembershipStatus(membershipId, {
-      role: MembershipRole.HOST,
-      status: MembershipStatus.PARTICIPATING,
+  const setUserAsHostHandler = async (membership: Membership) => {
+    const response = await MembershipApi.changeHost({
+      newHost: membership.user.id,
+      conversationId: membership.conversation.id,
     });
     if (!response) return;
+    notification.success({
+      message: "Host changed",
+    });
   };
 
   const removeUserHandler = async (membershipId: string) => {
@@ -82,8 +80,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
     }
 
     setCurrentPage(page);
-    fetchConversationParticipantHandler({
-      conversationId: conversation.id,
+    fetchConversationParticipantHandler(conversation.id, {
       page: page,
       size: USER_LIST_SIZE,
       sortBy: "firstName",
@@ -134,9 +131,8 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
                 className="block-user-button"
                 icon={<AndroidOutlined />}
                 onClick={async () => {
-                  await setUserAsHostHandler(membership.id);
-                  await fetchConversationParticipantHandler({
-                    conversationId: conversation.id,
+                  await setUserAsHostHandler(membership);
+                  await fetchConversationParticipantHandler(conversation.id, {
                     page: currentPage,
                     size: USER_LIST_SIZE,
                     sortBy: "firstName",
@@ -152,8 +148,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
                 danger
                 onClick={async () => {
                   await removeUserHandler(membership.id);
-                  await fetchConversationParticipantHandler({
-                    conversationId: conversation.id,
+                  await fetchConversationParticipantHandler(conversation.id, {
                     page: currentPage,
                     size: USER_LIST_SIZE,
                     sortBy: "firstName",
@@ -179,8 +174,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
       return;
     }
 
-    fetchConversationParticipantHandler({
-      conversationId: conversation.id,
+    fetchConversationParticipantHandler(conversation.id, {
       page: currentPage,
       size: USER_LIST_SIZE,
       sortBy: "firstName",
@@ -244,8 +238,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
                 conversation={conversation}
                 onClose={() => {
                   setAddMemberModalVisibility(false);
-                  fetchConversationParticipantHandler({
-                    conversationId: conversation.id,
+                  fetchConversationParticipantHandler(conversation.id, {
                     page: currentPage,
                     size: USER_LIST_SIZE,
                     sortBy: "firstName",

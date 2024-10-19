@@ -4,9 +4,9 @@ import { Layout } from "antd";
 import { SidebarMenu } from "./components/SidebarMenu";
 import Texting from "./components/Texting";
 import { useNavigate } from "react-router-dom";
-import { findMemberhsipById } from "../../services/membership/membership.service";
 import { useAuth } from "../../components/auth/AuthenticationProvider";
-import { Membership } from "../../services/membership/types/membership.dto";
+import MembershipApi from "../../services/membership/membership.api";
+import { Membership } from "../../services/membership/membership.type";
 
 export const ChatPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,15 +15,13 @@ export const ChatPage: React.FC = () => {
   const [activeMembership, setActiveMembership] = useState<any>({});
 
   const fetchMembershipById = async (membershipId: string) => {
-    const response = await findMemberhsipById(
-      authContext.accessToken,
-      membershipId
-    );
-    if ("data" in response) {
-      return response.data as Membership;
+    const response = await MembershipApi.getMembershipById(membershipId);
+
+    if (!response) {
+      authContext.logoutAction();
+      return null;
     }
-    authContext.logoutAction();
-    return null;
+    return response.data as Membership;
   };
 
   const getLastOpennedConversation = async () => {

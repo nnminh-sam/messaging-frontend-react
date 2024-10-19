@@ -11,12 +11,10 @@ import React, { useEffect, useState } from "react";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
 import { Conversation } from "../../../services/conversation/types/conversation.dto";
-import { ListApiResponse } from "../../../types/list-api-response.dto";
-import { Membership } from "../../../services/membership/types/membership.dto";
-import { GetParticipatedConversation } from "../../../services/membership/membership.service";
 import { CreateConversationModal } from "../modal/CreateConversation.modal";
 import { useNavigate } from "react-router-dom";
-import { ErrorResponse } from "../../../types/error-response.dto";
+import { Membership } from "../../../services/membership/membership.type";
+import MembershipApi from "../../../services/membership/membership.api";
 
 type SideBarDataType = Required<MenuProps>["items"][number];
 
@@ -45,8 +43,10 @@ export const SidebarMenu: React.FC<SidebarMenuProp> = ({
     useState<boolean>(false);
 
   const fetchParticipatedConversation: any = async () => {
-    const response: ListApiResponse<Membership> | ErrorResponse =
-      await GetParticipatedConversation(authContext.accessToken);
+    const response = await MembershipApi.getParticipatedConversations({
+      page: 1,
+      size: 10,
+    });
 
     if ("data" in response) {
       setParticipatedMembership(response.data);
