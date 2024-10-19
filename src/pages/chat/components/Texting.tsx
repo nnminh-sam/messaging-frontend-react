@@ -1,6 +1,6 @@
 import "../../../assets/style/pages/chat/Texting.css";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { List, Input, Button, Upload, Layout, Avatar } from "antd";
 import { MoreOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
 import {
@@ -11,11 +11,10 @@ import { FetchMessageDto } from "../../../services/message/types/fetch-message.d
 import { CreateMessagePayload } from "../../../services/message/types/create-message-payload.dto";
 import { AuthenticationContextProp } from "../../../components/auth/types/AuthenticationContextProp.interface";
 import { useAuth } from "../../../components/auth/AuthenticationProvider";
-import { io, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import { ListApiResponse } from "../../../types/list-api-response.dto";
 import { Message } from "../../../services/message/types/message.dto";
 import { ErrorResponse } from "../../../types/error-response.dto";
-import { fetchConversationById } from "../../../services/conversation/conversation.service";
 import { Conversation } from "../../../services/conversation/types/conversation.dto";
 import ConversationDetails from "../modal/ConversationDetail.modal";
 import { Membership } from "../../../services/membership/membership.type";

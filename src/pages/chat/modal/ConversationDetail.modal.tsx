@@ -51,6 +51,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
     if (!response) {
       authContext.logoutAction();
     }
+    console.log("members: ", response.data);
 
     setConversationMembers(response.data);
     setTotalPage(response.metadata.pagination.totalPage);
@@ -59,7 +60,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
   const setUserAsHostHandler = async (membership: Membership) => {
     const response = await MembershipApi.changeHost({
       newHost: membership.user.id,
-      conversationId: membership.conversation.id,
+      conversation: membership.conversation.id,
     });
     if (!response) return;
     notification.success({
@@ -72,7 +73,13 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
     if (!response) return;
   };
 
-  const banUserHandler = async () => {};
+  const banUserHandler = async (membership: Membership) => {
+    const response = await MembershipApi.banUser({
+      conversation: membership.conversation.id,
+      targetUser: membership.user.id,
+    });
+    if (!response) return;
+  };
 
   const PageChangeHandler = (page: number) => {
     if (page === currentPage) {
@@ -124,6 +131,7 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
           description={user.email}
         />
         {conversation.type !== "DIRECT" &&
+          membership.status !== "BANNED" &&
           membership.role !== "HOST" &&
           conversation.host === authContext.userInformation.id && (
             <div className="group-conversation-options">
@@ -161,10 +169,36 @@ const ConversationDetails: React.FC<ConversationDetailsModalProp> = ({
                 icon={<StopOutlined />}
                 variant="solid"
                 color="danger"
-                onClick={banUserHandler}
+                onClick={async () => {
+                  await banUserHandler(membership);
+                  await fetchConversationParticipantHandler(conversation.id, {
+                    page: currentPage,
+                    size: USER_LIST_SIZE,
+                    sortBy: "firstName",
+                    orderBy: "asc",
+                  });
+                }}
               ></Button>
             </div>
           )}
+        {conversation.type !== "DIRECT" && membership.status === "BANNED" && (
+          <Button
+            onClick={async () => {
+              await MembershipApi.unbanUser({
+                conversation: membership.conversation.id,
+                targetUser: membership.user.id,
+              });
+              await fetchConversationParticipantHandler(conversation.id, {
+                page: currentPage,
+                size: USER_LIST_SIZE,
+                sortBy: "firstName",
+                orderBy: "asc",
+              });
+            }}
+          >
+            Unban
+          </Button>
+        )}
       </List.Item>
     );
   };

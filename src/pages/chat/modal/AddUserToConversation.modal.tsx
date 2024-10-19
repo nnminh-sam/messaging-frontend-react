@@ -58,11 +58,7 @@ const AddUserToConversationModal: React.FC<AddUserToConversationModalProps> = ({
       conversation: conversation.id,
       role: MembershipRole.MEMBER,
     });
-
-    if (!response) authContext.logoutAction();
-    notification.success({
-      message: "User added to conversation",
-    });
+    if (!response) return;
     await fetchUserConversationMembershipByConversationId(currentPage);
   };
 
@@ -97,11 +93,12 @@ const AddUserToConversationModal: React.FC<AddUserToConversationModalProps> = ({
           description={user.email}
         />
         <div className="add-member-options">
-          {user?.membership ? (
+          {user.membership && user.membership.status === "PARTICIPATING" && (
             <Button type="text" disabled>
               Added
             </Button>
-          ) : (
+          )}
+          {(!user.membership || user.membership.status === "AWAY") && (
             <Button
               type="primary"
               onClick={() => {

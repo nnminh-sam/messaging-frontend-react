@@ -19,15 +19,13 @@ export const ChatPage: React.FC = () => {
 
   const fetchMembershipById = async (membershipId: string) => {
     const response = await MembershipApi.getMembershipById(membershipId);
-    console.log("🚀 ~ fetchMembershipById ~ response:", response);
-
-    if (!response) {
-      authContext.logoutAction();
-      return null;
-    }
+    if (!response) return null;
 
     const membership: Membership = response.data;
-    if (membership.status === MembershipStatus.AWAY) {
+    if (
+      membership.status === MembershipStatus.AWAY ||
+      membership.status === MembershipStatus.BANNED
+    ) {
       localStorage.removeItem("lastMembershipId");
       return null;
     }

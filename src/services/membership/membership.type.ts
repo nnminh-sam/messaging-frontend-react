@@ -32,10 +32,10 @@ export interface CreateMembershipDto {
 
 export interface ChangeHostDto {
   newHost: string;
-  conversationId: string;
+  conversation: string;
 }
 
 export interface BanUserDto {
   targetUser: string;
-  conversationId: string;
+  conversation: string;
 }
