@@ -6,7 +6,10 @@ import Texting from "./components/Texting";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/auth/AuthenticationProvider";
 import MembershipApi from "../../services/membership/membership.api";
-import { Membership } from "../../services/membership/membership.type";
+import {
+  Membership,
+  MembershipStatus,
+} from "../../services/membership/membership.type";
 
 export const ChatPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,9 +19,16 @@ export const ChatPage: React.FC = () => {
 
   const fetchMembershipById = async (membershipId: string) => {
     const response = await MembershipApi.getMembershipById(membershipId);
+    console.log("🚀 ~ fetchMembershipById ~ response:", response);
 
     if (!response) {
       authContext.logoutAction();
+      return null;
+    }
+
+    const membership: Membership = response.data;
+    if (membership.status === MembershipStatus.AWAY) {
+      localStorage.removeItem("lastMembershipId");
       return null;
     }
     return response.data as Membership;

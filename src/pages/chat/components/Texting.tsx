@@ -18,7 +18,7 @@ import { ErrorResponse } from "../../../types/error-response.dto";
 import { fetchConversationById } from "../../../services/conversation/conversation.service";
 import { Conversation } from "../../../services/conversation/types/conversation.dto";
 import ConversationDetails from "../modal/ConversationDetail.modal";
-import { Membership } from "../../../services/membership/types/membership.dto";
+import { Membership } from "../../../services/membership/membership.type";
 
 export interface TextingProps {
   membership: Membership;

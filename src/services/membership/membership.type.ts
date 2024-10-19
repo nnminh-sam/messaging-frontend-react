@@ -4,7 +4,7 @@ import { UserInformation } from "../user/types/user-information.dto";
 export enum MembershipStatus {
   PARTICIPATING = "PARTICIPATING",
   BANNED = "BANNED",
-  REMOVED = "REMOVED",
+  AWAY = "AWAY",
 }
 
 export enum MembershipRole {
