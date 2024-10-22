@@ -1,4 +1,5 @@
 import { Conversation } from "../../conversation/types/conversation.dto";
+import { Media } from "../../media";
 import { UserInformation } from "../../user/types/user-information.dto";
 
 export type Message = {
@@ -7,4 +8,5 @@ export type Message = {
   conversation: Conversation;
   message: string;
   createdAt: Date;
+  media?: Media;
 };
