@@ -47,26 +47,19 @@ export const SidebarMenu: React.FC<SidebarMenuProp> = ({
       page: 1,
       size: 10,
     });
-
     if ("data" in response) {
       setParticipatedMembership(response.data);
       setSidebarData(
         response.data.map((membership: Membership): any => {
-          console.log("membership:", membership);
           const conversation: Conversation = membership.conversation;
-          if (conversation.type !== "DIRECT") {
-            return {
-              key: conversation.id,
-              icon: <CommentOutlined />,
-              label: conversation.name,
-            };
-          }
-
-          const partnerFullName: string = `${membership.partner?.lastName} ${membership.partner?.firstName}`;
+          const converationLabel: string =
+            conversation.type !== "DIRECT"
+              ? conversation.name
+              : `${membership.partner?.lastName} ${membership.partner?.firstName}`;
           return {
             key: conversation.id,
             icon: <CommentOutlined />,
-            label: partnerFullName,
+            label: converationLabel,
           };
         })
       );

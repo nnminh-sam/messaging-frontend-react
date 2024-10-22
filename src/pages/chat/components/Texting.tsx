@@ -1,7 +1,15 @@
 import "../../../assets/style/pages/chat/Texting.css";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { List, Input, Button, Upload, Layout, Avatar } from "antd";
+import {
+  List,
+  Input,
+  Button,
+  Upload,
+  Layout,
+  Avatar,
+  notification,
+} from "antd";
 import { MoreOutlined, UploadOutlined, UserOutlined } from "@ant-design/icons";
 import {
   CreateNewMessage,
@@ -18,6 +26,7 @@ import { ErrorResponse } from "../../../types/error-response.dto";
 import { Conversation } from "../../../services/conversation/types/conversation.dto";
 import ConversationDetails from "../modal/ConversationDetail.modal";
 import { Membership } from "../../../services/membership/membership.type";
+import MediaApi from "../../../services/media/media.api";
 
 export interface TextingProps {
   membership: Membership;
@@ -78,7 +87,6 @@ const Texting: React.FC<TextingProps> = ({ membership }) => {
     }
   };
 
-  // ? This function currently cannot replace for the logic of "newMessage" listener
   const updateMessages: any = (message: Message) => {
     setMessages((prevMessages) => ({
       [message.id]: message,
@@ -86,7 +94,6 @@ const Texting: React.FC<TextingProps> = ({ membership }) => {
     }));
   };
 
-  // TODO: add an message to notify the user that is all the messages is shown
   const fetchMessagesHandler: any = async (payload: FetchMessageDto) => {
     if (!fetchable) {
       return;
@@ -157,11 +164,7 @@ const Texting: React.FC<TextingProps> = ({ membership }) => {
   // TODO: Update send message error alert
   const sendMessageHandler = async (event: any) => {
     event.preventDefault();
-
-    if (!newMessage.trim() || !conversationId) {
-      return;
-    }
-
+    if (!newMessage.trim() || !conversationId) return;
     try {
       const createMessagePayload: CreateMessagePayload = {
         sendBy: authContext.userInformation.id,
@@ -183,16 +186,30 @@ const Texting: React.FC<TextingProps> = ({ membership }) => {
       }
       setNewMessage("");
     } catch (error: any) {
-      alert(`An error appeared: ${error.response.data.message}`);
-      console.log("error:", error);
+      notification.error({
+        message: "Error",
+        description: error.message,
+      });
     }
   };
 
-  // TODO: handle file upload
-  const imageUploadHandler = (file: any) => {
-    console.log("Uploaded file:", file);
+  const imageUploadHandler = async (file: any) => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-    return false;
+    const response = await MediaApi.sendFile(formData);
+    if (!response) {
+      notification.error({
+        message: "Cannot upload file",
+        description: response?.message,
+      });
+      return false;
+    }
+
+    notification.success({
+      message: "File upload success",
+    });
+    return true;
   };
 
   const conversationDetailModalVisibilityUpdateHandler = () => {

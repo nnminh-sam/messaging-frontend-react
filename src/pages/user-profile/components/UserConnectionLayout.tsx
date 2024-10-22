@@ -8,6 +8,7 @@ import {
   Input,
   Layout,
   List,
+  notification,
   Radio,
   RadioChangeEvent,
 } from "antd";
@@ -97,23 +98,14 @@ const UserConnectionLayout: React.FC = () => {
       setFriendRelationships(userFriends);
       return;
     } else if ("status" in response && response.status === "error") {
-      setAlertMessage(`${response.message}`);
-      setAlertDescriptions(
-        response?.details.map((detail: any, index: number) => {
-          return (
-            <AlertDescription
-              message={detail.message}
-              fieldName={detail.property}
-            />
-          );
-        })
-      );
-      setAlertType(AlertType.ERROR);
-      setAlertVisible(true);
+      notification.error({
+        message: `${response.message}`,
+        description: `${response.details}`,
+      });
     } else {
-      setAlertMessage("Unexpected error");
-      setAlertType(AlertType.ERROR);
-      setAlertVisible(true);
+      notification.error({
+        message: "Unexpected error",
+      });
     }
   };
 
