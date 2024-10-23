@@ -1,0 +1,87 @@
+.user-media-header {
+  background-color: white;
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
+  padding: 10px 10px;
+  height: auto;
+}
+
+.user-contact-card {
+  width: 100%;
+}
+
+.user-contact-username {
+  font-size: 12px;
+  color: #86b6f6;
+}
+
+.user-media-content {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 50vw;
+}
+
+.user-media-content .tool-box {
+  display: flex;
+  gap: 10px;
+}
+
+.media-list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.media-list .media-list-item {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: first baseline;
+  width: 100%;
+}
+
+.media-list .media-list-item-meta {
+  width: 100%;
+}
+
+.media-list .media-list-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.media-list .media-list-item-footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.media-list .media-list-item-footer p {
+  padding: 0;
+  margin: 5px;
+}
+
+.media-list .media-list-item-tool-box {
+  display: flex;
+  gap: 5px;
+}
+
+@media (max-width: 900px) {
+  .user-media-content {
+    max-width: 100%;
+  }
+}
+
+.user-media-content .media-status-filter {
+  margin-bottom: 10px;
+  margin-top: 0;
+}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import UserProfileSidebar from "./components/UserProfileSidebar";
 import UserProfileLayout from "./components/UserProfileLayout";
 import UserConnectionLayout from "./components/UserConnectionLayout";
+import UserMediaLayout from "./components/UserMediaLayout";
 
 const UserProfile: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState("");
@@ -20,10 +21,10 @@ const UserProfile: React.FC = () => {
         return <UserProfileLayout />;
       case "connections":
         return <UserConnectionLayout />;
-      case "conversations":
-        return <div />;
+      // case "conversations":
+      //   return <div />;
       case "media":
-        return <div />;
+        return <UserMediaLayout />;
       default:
         <></>;
     }

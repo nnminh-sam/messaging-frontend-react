@@ -33,11 +33,11 @@ const UserProfileSidebar: React.FC<UserSidebarProp> = ({
       label: "Connections",
       icon: <TeamOutlined />,
     },
-    {
-      key: "conversation",
-      label: "Conversations",
-      icon: <MessageOutlined />,
-    },
+    // {
+    //   key: "conversation",
+    //   label: "Conversations",
+    //   icon: <MessageOutlined />,
+    // },
     {
       key: "media",
       label: "Media",

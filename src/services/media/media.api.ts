@@ -1,6 +1,8 @@
 import { notification } from "antd";
 import { HTTPMethod } from "../api/api.type";
 import Api from "../api";
+import { Pagination } from "../../types/metadata.dto";
+import { MediaQuery } from "./media.type";
 
 const MODULE_NAME: string = "media";
 
@@ -68,10 +70,36 @@ async function rejectMedia(mediaId: string) {
   }
 }
 
+async function findUserSentMedia(
+  paginationDto: Pagination,
+  mediaQuery: MediaQuery
+) {
+  try {
+    const response = await Api({
+      url: `${MODULE_NAME}/sent`,
+      method: HTTPMethod.GET,
+      params: { ...paginationDto, ...mediaQuery },
+    });
+    if (response.data) {
+      return response.data;
+    }
+    notification.error({
+      message: "Error",
+      description: "Unexpected error occurred",
+    });
+  } catch (error: any) {
+    notification.error({
+      message: "Error",
+      description: error?.message,
+    });
+  }
+}
+
 const MediaApi = {
   sendFile,
   approveMedia,
   rejectMedia,
+  findUserSentMedia,
 };
 
 export default MediaApi;
