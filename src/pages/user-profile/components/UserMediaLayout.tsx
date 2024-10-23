@@ -99,11 +99,6 @@ const UserMediaLayout: React.FC = () => {
         <List.Item.Meta
           className="media-list-item-meta"
           key={media.id}
-          avatar={
-            <Avatar
-              src={`https://api.dicebear.com/7.x/miniavs/svg?seed=${index}`}
-            />
-          }
           title={`Name: ${media.filename}`}
           description={
             <p>{`Uploaded at: ${formatTimestamp(media.createdAt)}`}</p>
