@@ -38,7 +38,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
     const payload: CreateRelationshipPayload = {
       userA: authContext.userInformation.id,
       userB: userId,
-      status: "REQUEST_USER_A",
+      // status: "REQUEST_USER_A",
     };
     try {
       const response: ApiResponse<Relationship> = await CreateNewRelationship(
