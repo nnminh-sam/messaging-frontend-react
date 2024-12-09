@@ -96,7 +96,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
           "asc"
         );
       setUsers(response.data);
-      setTotalUsers(response.metadata.pagination.totalDocument);
+      setTotalUsers(response.metadata.pagination.totalDocument || 0);
     } catch (error) {
       authContext.logoutAction();
     }
@@ -184,6 +184,18 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
             >
               Add Friend
             </Button>
+          );
+        case "BLOCKED_USER_B":
+          return user.relationship.userB === authContext.userInformation.id ? (
+            <Button type="link">Blocked</Button>
+          ) : (
+            <></>
+          );
+        case "BLOCKED_USER_A":
+          return user.relationship.userA === authContext.userInformation.id ? (
+            <Button type="link">Blocked</Button>
+          ) : (
+            <></>
           );
         default:
           return (
