@@ -187,15 +187,23 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
           );
         case "BLOCKED_USER_B":
           return user.relationship.userB === authContext.userInformation.id ? (
-            <Button type="link">Blocked</Button>
+            <Button type="link" style={{ color: "red" }} disabled={true}>
+              Blocked
+            </Button>
           ) : (
-            <></>
+            <Button type="link" style={{ color: "red" }} disabled={true}>
+              You are blocked
+            </Button>
           );
         case "BLOCKED_USER_A":
           return user.relationship.userA === authContext.userInformation.id ? (
-            <Button type="link">Blocked</Button>
+            <Button type="link" style={{ color: "red" }} disabled={true}>
+              Blocked
+            </Button>
           ) : (
-            <></>
+            <Button type="link" style={{ color: "red" }} disabled={true}>
+              You are blocked
+            </Button>
           );
         default:
           return (
