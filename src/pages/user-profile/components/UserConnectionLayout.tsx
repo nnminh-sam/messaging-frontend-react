@@ -387,8 +387,25 @@ const UserConnectionLayout: React.FC = () => {
     );
   };
 
-  const onSearch: SearchProps["onSearch"] = (value, _e, info) =>
-    console.log(info?.source, value);
+  const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
+    // console.log("Searching for:", value);
+    if (!value) {
+      fetchUserFriendsHandler(relationshipStatusFilter);
+      return;
+    }
+
+    const filteredRelationships = friendRelationships.filter((relationship) => {
+      const friend: UserInformation =
+        relationship.userA.id === user.id
+          ? relationship.userB
+          : relationship.userA;
+      return (
+        friend.firstName.toLowerCase().includes(value.toLowerCase()) ||
+        friend.lastName.toLowerCase().includes(value.toLowerCase())
+      );
+    });
+    setFriendRelationships(filteredRelationships);
+  };
 
   const relationshipStatusFilterUpdateHandler: any = (e: RadioChangeEvent) => {
     setRelationshipStatusFilter(e.target.value);

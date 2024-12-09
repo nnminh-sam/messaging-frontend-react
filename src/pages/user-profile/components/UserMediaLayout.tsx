@@ -139,8 +139,17 @@ const UserMediaLayout: React.FC = () => {
     );
   };
 
-  const onSearch: SearchProps["onSearch"] = (value, _e, info) =>
-    console.log(info?.source, value);
+  const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
+    if (!value) {
+      fetchUserSentMedia();
+      return;
+    }
+
+    const filteredMedia = media.filter((m) => {
+      return m.filename.includes(value);
+    });
+    setMedia(filteredMedia);
+  };
 
   const mediaStatusFilterUpdateHandler: any = async (e: RadioChangeEvent) => {
     setMediaStatusFilter(e.target.value);
