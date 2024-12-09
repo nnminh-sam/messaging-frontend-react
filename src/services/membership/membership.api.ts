@@ -56,12 +56,15 @@ async function getMembershipById(membershipId: string) {
   }
 }
 
-async function getParticipatedConversations(paginationDto: PaginationDto) {
+async function getParticipatedConversations(
+  paginationDto: PaginationDto,
+  name?: string
+) {
   try {
     const response = await Api({
       url: `${MODULE_NAME}/participated-conversations`,
       method: HTTPMethod.GET,
-      params: { ...paginationDto },
+      params: { ...paginationDto, ...(name && { name }) },
     });
     if (response.data) {
       return response.data;

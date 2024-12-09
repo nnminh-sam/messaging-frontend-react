@@ -73,8 +73,32 @@ export const SidebarMenu: React.FC<SidebarMenuProp> = ({
   }, []);
 
   // TODO: update the conversation content to show the searching conversations
-  const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
+  const onSearch: SearchProps["onSearch"] = async (value, _e, info) => {
     console.log("value:", value);
+    const response = await MembershipApi.getParticipatedConversations(
+      {
+        page: 1,
+        size: 10,
+      },
+      value
+    );
+    if ("data" in response) {
+      setParticipatedMembership(response.data);
+      setSidebarData(
+        response.data.map((membership: Membership): any => {
+          const conversation: Conversation = membership.conversation;
+          const converationLabel: string =
+            conversation.type !== "DIRECT"
+              ? conversation.name
+              : `${membership.partner?.lastName} ${membership.partner?.firstName}`;
+          return {
+            key: conversation.id,
+            icon: <CommentOutlined />,
+            label: converationLabel,
+          };
+        })
+      );
+    }
   };
 
   const handleConversationSelected: MenuProps["onClick"] = (event: any) => {

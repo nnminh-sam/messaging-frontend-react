@@ -32,7 +32,7 @@ export const ChatPage: React.FC = () => {
     return response.data as Membership;
   };
 
-  const getLastOpennedConversation = async () => {
+  const getLastOpenedConversation = async () => {
     const membershipIdFromLocalStorage: string | null =
       localStorage.getItem("lastMembershipId");
     if (!membershipIdFromLocalStorage) return;
@@ -47,7 +47,7 @@ export const ChatPage: React.FC = () => {
   };
 
   useEffect(() => {
-    getLastOpennedConversation();
+    getLastOpenedConversation();
   }, []);
 
   return (
