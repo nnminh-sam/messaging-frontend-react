@@ -196,12 +196,27 @@ const Texting: React.FC<TextingProps> = ({ membership }) => {
     formData.append("file", file);
 
     const response = await MediaApi.sendFile(conversation.id, formData);
+    console.log("🚀 ~ imageUploadHandler ~ response:", response);
     if (!response) {
       notification.error({
         message: "Cannot upload file",
         description: response?.message,
       });
       return false;
+    }
+    const mediaStatus: string = response.data.status;
+    if (mediaStatus === "REJECTED") {
+      notification.error({
+        message: "Violence media detected!",
+        description:
+          "You are now banned from this conversation and will be logged out for your action!",
+      });
+      authContext.logoutAction();
+    } else {
+      notification.success({
+        message: "Media upload success",
+        description: "Great! There aren't any violence in you media!",
+      });
     }
     return true;
   };
