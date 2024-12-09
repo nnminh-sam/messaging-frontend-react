@@ -191,8 +191,8 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
               Blocked
             </Button>
           ) : (
-            <Button type="link" style={{ color: "red" }} disabled={true}>
-              You are blocked
+            <Button type="link" style={{ color: "black" }} disabled={true}>
+              This person is not available!
             </Button>
           );
         case "BLOCKED_USER_A":
@@ -201,8 +201,8 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProp> = ({
               Blocked
             </Button>
           ) : (
-            <Button type="link" style={{ color: "red" }} disabled={true}>
-              You are blocked
+            <Button type="link" style={{ color: "black" }} disabled={true}>
+              This person is not available!
             </Button>
           );
         default:
